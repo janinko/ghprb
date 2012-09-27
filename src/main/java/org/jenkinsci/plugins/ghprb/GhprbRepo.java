@@ -79,7 +79,7 @@ public class GhprbRepo {
 	private void checkBuilds() throws IOException{
 		Iterator<Entry<Integer, QueueTaskFuture<?>>> it;
 		it = queuedBuilds.entrySet().iterator();
-		while(it.hasNext()){
+		 while(it.hasNext()){
 			Entry<Integer, QueueTaskFuture<?>> e =it.next();
 			if(e.getValue().getStartCondition().isDone()){
 				it.remove();
@@ -114,6 +114,10 @@ public class GhprbRepo {
 					state = GHCommitState.FAILURE;
 				}
 				createCommitStatus(build, state, "Build finished");
+				String publishedURL = trigger.getDescriptor().getPublishedURL();
+				if (publishedURL != null) {
+					addComment(e.getKey(), "Build results will soon be (or already are) available at: " + publishedURL + build.getUrl());
+				}
 			}
 		}
 	}
