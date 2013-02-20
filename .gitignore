@@ -1,0 +1,12 @@
+#
+# Eclipse metadata.
+#
+.project
+.classpath
+.settings/
+
+#
+# Eclipse and Maven build results
+#
+bin/
+target/
