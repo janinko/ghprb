@@ -103,7 +103,9 @@ public class GhprbBuild {
 
 	protected void onFinished() {
 		GHCommitState state;
-		if (build.getResult() == Result.SUCCESS) {
+		if ((build.getResult() == Result.SUCCESS) ||
+                (build.getResult() == Result.UNSTABLE && !GhprbTrigger.DESCRIPTOR.failUnstableBuilds())
+        ) {
 			state = GHCommitState.SUCCESS;
 		} else {
 			state = GHCommitState.FAILURE;
