@@ -12,6 +12,9 @@
     <f:entry title="${%Use comments to report results when updating commit status fails}" field="useComments">
       <f:checkbox />
     </f:entry>
+    <f:entry title="${%Mark unstable builds as failures}" field="failUnstableBuilds">
+      <f:checkbox />
+    </f:entry>
     <f:entry title="${%Admin list}" field="adminlist">
       <f:textarea />
     </f:entry>
