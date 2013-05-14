@@ -90,15 +90,13 @@ public class GhprbBuilds {
 			publishedURL = Jenkins.getInstance().getRootUrl();
 		}
 
-		if (publishedURL != null && !publishedURL.isEmpty()) {
-			String msg;
-			if (state == GHCommitState.SUCCESS) {
-				msg = GhprbTrigger.getDscp().getMsgSuccess();
-			} else {
-				msg = GhprbTrigger.getDscp().getMsgFailure();
-			}
-			repo.addComment(c.getPullID(), msg + "\nRefer to this link for build results: " + publishedURL + build.getUrl());
+		String msg;
+		if (state == GHCommitState.SUCCESS) {
+			msg = GhprbTrigger.getDscp().getMsgSuccess();
+		} else {
+			msg = GhprbTrigger.getDscp().getMsgFailure();
 		}
+		repo.addComment(c.getPullID(), msg + "\nRefer to this link for build results: " + publishedURL + build.getUrl());
 
 		// close failed pull request automatically
 		if (state == GHCommitState.FAILURE && trigger.isAutoCloseFailedPullRequests()) {
