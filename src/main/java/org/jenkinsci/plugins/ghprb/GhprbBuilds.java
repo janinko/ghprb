@@ -7,6 +7,9 @@ import hudson.model.queue.QueueTaskFuture;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import jenkins.model.Jenkins;
+
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHPullRequest;
@@ -82,6 +85,11 @@ public class GhprbBuilds {
 		repo.createCommitStatus(build, state, (c.isMerged() ? "Merged build finished." : "Build finished."),c.getPullID() );
 
 		String publishedURL = GhprbTrigger.getDscp().getPublishedURL();
+
+		if (publishedURL == null || publishedURL.isEmpty()) {
+			publishedURL = Jenkins.getInstance().getRootUrl();
+		}
+
 		if (publishedURL != null && !publishedURL.isEmpty()) {
 			String msg;
 			if (state == GHCommitState.SUCCESS) {
