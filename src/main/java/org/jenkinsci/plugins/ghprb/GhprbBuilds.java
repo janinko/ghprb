@@ -96,7 +96,10 @@ public class GhprbBuilds {
 		} else {
 			msg = GhprbTrigger.getDscp().getMsgFailure();
 		}
-		repo.addComment(c.getPullID(), msg + "\nRefer to this link for build results: " + publishedURL + build.getUrl());
+
+		if (msg != null && !msg.isEmpty()) {
+			repo.addComment(c.getPullID(), msg + "\nRefer to this link for build results: " + publishedURL + build.getUrl());
+		}
 
 		// close failed pull request automatically
 		if (state == GHCommitState.FAILURE && trigger.isAutoCloseFailedPullRequests()) {
