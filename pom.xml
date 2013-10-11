@@ -10,7 +10,7 @@
 
     <artifactId>ghprb-nirav</artifactId>
     <name>GitHub Pull Request Builder</name>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.11-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <url>https://wiki.jenkins-ci.org/display/JENKINS/GitHub+pull+request+builder+plugin</url>
@@ -20,11 +20,6 @@
             <id>janinko</id>
             <name>Honza Brázdil</name>
             <email>jbrazdil@redhat.com</email>
-        </developer>
-        <developer>
-            <id>niravmsh</id>
-            <name>Nirav Shah</name>
-            <email>nirshah@paypal.com</email>
         </developer>
     </developers>
 
