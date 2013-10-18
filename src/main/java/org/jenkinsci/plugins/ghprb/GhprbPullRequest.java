@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.kohsuke.github.GHCommitState;
+
 import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHPullRequest;
 
@@ -110,18 +110,10 @@ public class GhprbPullRequest{
 			shouldRun = false;
 		}
 		if (shouldRun) {
-			build();
-			shouldRun = false;
+            ml.getBuilds().build(this);
+            shouldRun = false;
 			triggered = false;
 		}
-	}
-
-	private void build(){
-		String message = ml.getBuilds().build(this);
-
-		repo.createCommitStatus(head, GHCommitState.PENDING, null, message,id);
-
-		logger.log(Level.INFO, message);
 	}
 
 	// returns false if no new commit
