@@ -39,7 +39,7 @@
         <f:textbox default=".*test\W+this\W+please.*"/>
       </f:entry>
       <f:entry title="${%Crontab line}" field="cron">
-        <f:textbox default="*/5 * * * *"/>
+        <f:textbox default="H/5 * * * *"/>
       </f:entry>
       <f:entry title="${%Default success message}" field="msgSuccess">
         <f:textarea default="Test PASSed."/>
