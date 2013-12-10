@@ -26,29 +26,16 @@ public class GhprbBuilds {
 		this.repo = repo;
 	}
 
-	public String build(GhprbPullRequest pr) {
-		StringBuilder sb = new StringBuilder();
-		if(cancelBuild(pr.getId())){
-			sb.append("Previous build stopped.");
-		}
-
-		if(pr.isMergeable()){
-			sb.append(" Merged build triggered.");
-		}else{
-			sb.append(" Build triggered.");
-		}
+	public void build(GhprbPullRequest pr) {
+		String message = pr.isMergeable() ? "Merged build triggered" : " Build triggered";
+		repo.createCommitStatus(pr.getHead(), GHCommitState.PENDING, null, message, pr.getId());
 
 		GhprbCause cause = new GhprbCause(pr.getHead(), pr.getId(), pr.isMergeable(), pr.getTarget(), pr.getAuthorEmail(), pr.getTitle());
-
 		QueueTaskFuture<?> build = trigger.startJob(cause);
-		if(build == null){
+
+		if (build == null) {
 			logger.log(Level.SEVERE, "Job did not start");
 		}
-		return sb.toString();
-	}
-
-	private boolean cancelBuild(int id) {
-		return false;
 	}
 
 	private GhprbCause getCause(AbstractBuild build){
@@ -61,7 +48,9 @@ public class GhprbBuilds {
 		GhprbCause c = getCause(build);
 		if(c == null) return;
 
-		repo.createCommitStatus(build, GHCommitState.PENDING, (c.isMerged() ? "Merged build started." : "Build started."),c.getPullID());
+		String message = String.format("%s #%d started", c.isMerged() ? "Merged build" : "Build", build.getNumber());
+		repo.createCommitStatus(build, GHCommitState.PENDING, message, c.getPullID());
+
 		try {
 			build.setDescription("<a title=\"" + c.getTitle() + "\" href=\"" + repo.getRepoUrl()+"/pull/"+c.getPullID()+"\">PR #"+c.getPullID()+"</a>: " + c.getAbbreviatedTitle());
 		} catch (IOException ex) {
@@ -74,14 +63,24 @@ public class GhprbBuilds {
 		if(c == null) return;
 
 		GHCommitState state;
+		String verb;
 		if (build.getResult() == Result.SUCCESS) {
 			state = GHCommitState.SUCCESS;
-		} else if (build.getResult() == Result.UNSTABLE){
-			state = GHCommitState.valueOf(GhprbTrigger.getDscp().getUnstableAs());
-		} else {
-			state = GHCommitState.FAILURE;
+			verb = "succeeded";
 		}
-		repo.createCommitStatus(build, state, (c.isMerged() ? "Merged build finished." : "Build finished."),c.getPullID() );
+		else if (build.getResult() == Result.UNSTABLE) {
+			state = GHCommitState.valueOf(GhprbTrigger.getDscp().getUnstableAs());
+			verb = "found unstable";
+		}
+		else {
+			state = GHCommitState.FAILURE;
+			verb = "failed";
+		}
+
+		String message =
+				String.format("%s #%d %s in %s", c.isMerged() ? "Merged build" : "Build", build.getNumber(), verb,
+						build.getDurationString());
+		repo.createCommitStatus(build, state, message, c.getPullID());
 
 		String publishedURL = GhprbTrigger.getDscp().getPublishedURL();
 		if (publishedURL != null && !publishedURL.isEmpty()) {

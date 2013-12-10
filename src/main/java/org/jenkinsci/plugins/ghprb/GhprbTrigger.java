@@ -105,7 +105,7 @@ public final class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 		// it's possible the GHUser doesn't have an associated email address
 		values.add(new StringParameterValue("ghprbPullAuthorEmail",cause.getAuthorEmail() != null ? cause.getAuthorEmail() : ""));
 
-		return this.job.scheduleBuild2(0,cause,new ParametersAction(values));
+		return job.scheduleBuild2(job.getQuietPeriod(), cause, new ParametersAction(values));
 	}
 
 	private ArrayList<ParameterValue> getDefaultParameters() {
