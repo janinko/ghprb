@@ -25,6 +25,7 @@ public class GhprbPullRequest {
 	private boolean mergeable;
 	private String reponame;
 	private String target;
+	private String source;
 	private String authorEmail;
 
 	private boolean shouldRun = false;
@@ -42,6 +43,7 @@ public class GhprbPullRequest {
 		author = pr.getUser();
 		reponame = repo.getName();
 		target = pr.getBase().getRef();
+		source = pr.getHead().getRef();
 		obtainAuthorEmail(pr);
 
 		this.ml = helper;
@@ -65,9 +67,8 @@ public class GhprbPullRequest {
 	}
 
     public void check(GHPullRequest pr) {
-        if (target == null) {
-            target = pr.getBase().getRef(); // If this instance was created before target was introduced (before v1.8), it can be null.
-        }
+        if(target == null) target = pr.getBase().getRef(); // If this instance was created before target was introduced (before v1.8), it can be null.
+		if(source == null) source = pr.getHead().getRef(); // If this instance was created before target was introduced (before v1.8), it can be null.
 
         if (isUpdated(pr)) {
             logger.log(Level.INFO, "Pull request builder: pr #{0} was updated on {1} at {2} by {3}", new Object[]{id, reponame, updated, author});
@@ -264,6 +265,10 @@ public class GhprbPullRequest {
 
 	public String getTarget(){
 		return target;
+	}
+	
+	public String getSource(){
+		return source;
 	}
 	
 	public String getAuthorEmail() {
