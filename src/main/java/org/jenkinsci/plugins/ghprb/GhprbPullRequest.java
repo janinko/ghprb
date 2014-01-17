@@ -86,8 +86,13 @@ public class GhprbPullRequest {
             }
             updated = pr.getUpdatedAt();
         }
-
-        tryBuild(pr);
+		if(!isAllowedTarget()){
+			shouldRun = false;
+		}
+		if(shouldRun){
+			tryBuild(pr);
+		}
+        
     }
 
     public void check(GHIssueComment comment) {
@@ -105,10 +110,26 @@ public class GhprbPullRequest {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Couldn't get GHPullRequest for checking mergeable state");
         }
-
-        tryBuild(pr);
+		if(!isAllowedTarget()){
+			shouldRun = false;
+		}
+		if(shouldRun){
+			tryBuild(pr);
+		}
+        
     }
-
+    
+	public boolean isAllowedTarget(){
+		boolean allowAll = ml.allowAllBranches();
+		if (!allowAll){
+			if (ml.isAllowedTarget(target)){
+				return true;
+			}
+			logger.log(Level.FINE, "Pull request builder: pr #{0} target branch of {1} isn't our allowed target branches of "+ml.getAllowedBranches(), new Object[]{id, target});
+		}
+		return false;
+	}
+	
 	private boolean isUpdated(GHPullRequest pr){
         boolean ret = updated.compareTo(pr.getUpdatedAt()) < 0;
 		ret = ret || !pr.getHead().getSha().equals(head);

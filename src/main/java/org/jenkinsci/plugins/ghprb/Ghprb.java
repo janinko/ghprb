@@ -22,6 +22,7 @@ public class Ghprb {
 	private HashSet<String>       admins;
 	private HashSet<String>       whitelisted;
 	private HashSet<String>       organisations;
+	private HashSet<GhprbTrigger.BranchList>   	branchList;
 	private String                triggerPhrase;
 	private GhprbTrigger          trigger;
 	private GhprbRepository       repository;
@@ -113,7 +114,17 @@ public class Ghprb {
 	public boolean isAdmin(String username){
 		return admins.contains(username);
 	}
-
+	
+	public boolean isAllowedTarget(String branch){
+		if(branchList.isEmpty())
+			return true;
+		for (GhprbTrigger.BranchList b:branchList){
+			if (b.getBranchID().trim().equals(branch.trim()))
+				return true;
+		}
+		return false;
+	}
+	
 	private boolean isInWhitelistedOrganisation(GHUser user) {
 		for(String organisation : organisations){
 			if(getGitHub().isUserMemberOfOrganization(organisation,user)){
@@ -140,6 +151,8 @@ public class Ghprb {
 			if(gml == null) return this;
 
 			gml.trigger = trigger;
+			gml.branchList = new HashSet<GhprbTrigger.BranchList>(trigger.getBranchList());
+			gml.branchList.remove(new GhprbTrigger.BranchList(""));
 			gml.admins = new HashSet<String>(Arrays.asList(trigger.getAdminlist().split("\\s+")));
 			gml.admins.remove("");
 			gml.whitelisted = new HashSet<String>(Arrays.asList(trigger.getWhitelist().split("\\s+")));
