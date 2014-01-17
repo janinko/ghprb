@@ -24,20 +24,20 @@
 	<f:entry title="${%List of organisations. Their members will be whitelisted.}" field="orgslist">
 	  <f:textarea />
 	</f:entry>
-    	<f:entry title="${%Allow Target Branches:}" field="branchList" >
+    <f:entry title="${%Allow Target Branches:}" field="branchList" >
   		<f:repeatable field="branchList" minimum="1"  add="Add Branch" >
-                	<table width="100%">
-                        	<f:entry field="branchID">
-                                	<f:textbox/>
-                        	</f:entry>
-                        	<f:entry title="">
-                                	<div align="right">
-                                        	<f:repeatableDeleteButton value="Delete Branch"/>
-                                	/div>
-                         	</f:entry>
-                	</table>
-    		</f:repeatable>
-    	</f:entry>
+                                <table width="100%">
+                                        <f:entry field="branchID">
+                                                <f:textbox/>
+                                        </f:entry>
+                                        <f:entry title="">
+                                                <div align="right">
+                                                        <f:repeatableDeleteButton value="Delete Branch"/>
+                                                </div>
+                                        </f:entry>
+                                </table>
+                        </f:repeatable>
+    </f:entry>
     <f:entry title="Build every pull request automatically without asking (Dangerous!)." field="permitAll">
       <f:checkbox />
     </f:entry>

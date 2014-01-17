@@ -138,7 +138,13 @@ public class Ghprb {
 		return githubServer;
 	}
 
+	public boolean allowAllBranches() {
+		return branchList.isEmpty();
+	}
 
+	public String getAllowedBranches(){
+		return trigger.getTargetList();
+	}
 	/*               BUILDER                */
 
 	public static class Builder{

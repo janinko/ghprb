@@ -126,8 +126,9 @@ public class GhprbPullRequest {
 				return true;
 			}
 			logger.log(Level.FINE, "Pull request builder: pr #{0} target branch of {1} isn't our allowed target branches of "+ml.getAllowedBranches(), new Object[]{id, target});
+			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	private boolean isUpdated(GHPullRequest pr){

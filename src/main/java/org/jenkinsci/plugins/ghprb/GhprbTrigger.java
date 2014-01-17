@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,7 +75,7 @@ public final class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 
 	@DataBoundConstructor
 	public GhprbTrigger(String adminlist, String whitelist, String orgslist, String cron, String triggerPhrase,
-			Boolean onlyTriggerPhrase, Boolean useGitHubHooks, Boolean permitAll, permitAll, List<BranchList> branchList, Boolean autoCloseFailedPullRequests) throws ANTLRException{
+			Boolean onlyTriggerPhrase, Boolean useGitHubHooks, Boolean permitAll, List<BranchList> branchList,  Boolean autoCloseFailedPullRequests) throws ANTLRException{
 		super(cron);
 		this.adminlist = adminlist;
 		this.whitelist = whitelist;
