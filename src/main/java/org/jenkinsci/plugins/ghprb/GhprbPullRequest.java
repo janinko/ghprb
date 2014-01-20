@@ -8,6 +8,7 @@ import org.kohsuke.github.GHUser;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,12 +87,8 @@ public class GhprbPullRequest {
             }
             updated = pr.getUpdatedAt();
         }
-		if(!isAllowedTarget()){
-			shouldRun = false;
-		}
-		if(shouldRun){
+        if(isAllowedTarget())
 			tryBuild(pr);
-		}
         
     }
 
@@ -110,20 +107,20 @@ public class GhprbPullRequest {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Couldn't get GHPullRequest for checking mergeable state");
         }
-		if(!isAllowedTarget()){
-			shouldRun = false;
-		}
-		if(shouldRun){
+        if(isAllowedTarget())
 			tryBuild(pr);
-		}
         
     }
     
 	public boolean isAllowedTarget(){
+		//return ml.tr();
+		
 		boolean allowAll = ml.allowAllBranches();
 		if (!allowAll){
-			if (ml.isAllowedTarget(target)){
-				return true;
+			List<GhprbTrigger.BranchList> branchList = ml.getBranchList();
+			for (GhprbTrigger.BranchList b:branchList){
+				if (b.getBranchID().trim().equals(target.trim()))
+					return true;
 			}
 			logger.log(Level.FINE, "Pull request builder: pr #{0} target branch of {1} isn't our allowed target branches of "+ml.getAllowedBranches(), new Object[]{id, target});
 			return false;

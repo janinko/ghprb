@@ -5,6 +5,7 @@ import hudson.model.AbstractProject;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -137,11 +138,15 @@ public class Ghprb {
 	String getGitHubServer() {
 		return githubServer;
 	}
-
+	public boolean tr(){
+		return true;
+	}
 	public boolean allowAllBranches() {
 		return branchList.isEmpty();
 	}
-
+	public List <GhprbTrigger.BranchList> getBranchList(){
+		return trigger.getBranchList();
+	}
 	public String getAllowedBranches(){
 		return trigger.getTargetList();
 	}
@@ -158,7 +163,6 @@ public class Ghprb {
 
 			gml.trigger = trigger;
 			gml.branchList = new HashSet<GhprbTrigger.BranchList>(trigger.getBranchList());
-			gml.branchList.remove(new GhprbTrigger.BranchList(""));
 			gml.admins = new HashSet<String>(Arrays.asList(trigger.getAdminlist().split("\\s+")));
 			gml.admins.remove("");
 			gml.whitelisted = new HashSet<String>(Arrays.asList(trigger.getWhitelist().split("\\s+")));
