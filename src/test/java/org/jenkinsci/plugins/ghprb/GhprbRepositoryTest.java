@@ -117,8 +117,10 @@ public class GhprbRepositoryTest {
         verify(ghPullRequest, times(2)).getNumber();
         verify(ghPullRequest, times(1)).getUpdatedAt();
         verifyNoMoreInteractions(ghPullRequest);
-
+        
         verify(helper).ifOnlyTriggerPhrase();
+        verify(helper).allowAllBranches();
+        verify(helper).getBranchList();
         verifyNoMoreInteractions(helper);
         verifyNoMoreInteractions(gt);
 
