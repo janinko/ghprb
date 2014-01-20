@@ -122,7 +122,6 @@ public class GhprbRepositoryTest {
         
         verify(helper).ifOnlyTriggerPhrase();
         verify(helper).allowAllBranches();
-        //verify(helper).getBranchList();
         verifyNoMoreInteractions(helper);
         verifyNoMoreInteractions(gt);
 
@@ -288,7 +287,6 @@ public class GhprbRepositoryTest {
         given(ghPullRequest.getTitle()).willReturn("title");
         given(ghPullRequest.getUser()).willReturn(ghUser);
         given(ghPullRequest.getUrl()).willReturn(new URL("https://github.com/org/repo/pull/100"));
-        //given(ghprbPullRequest.isAllowedTarget()).willReturn(true);
 
         given(ghUser.getEmail()).willReturn("email");
         given(ghUser.getLogin()).willReturn("login");
