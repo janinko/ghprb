@@ -95,6 +95,8 @@ public class GhprbRepositoryTest {
         mockHeadAndBase();
 
         given(helper.ifOnlyTriggerPhrase()).willReturn(true);
+        given(helper.allowAllBranches()).willReturn(true);
+        given(helper.isAllowedTarget("anyBranch")).willReturn(true);
 
         pulls.put(1, ghprbPullRequest);
 
@@ -120,7 +122,7 @@ public class GhprbRepositoryTest {
         
         verify(helper).ifOnlyTriggerPhrase();
         verify(helper).allowAllBranches();
-        verify(helper).getBranchList();
+        //verify(helper).getBranchList();
         verifyNoMoreInteractions(helper);
         verifyNoMoreInteractions(gt);
 
@@ -150,6 +152,8 @@ public class GhprbRepositoryTest {
 
         given(helper.ifOnlyTriggerPhrase()).willReturn(false);
         given(helper.isWhitelisted(ghUser)).willReturn(true);
+        given(helper.allowAllBranches()).willReturn(true);
+        given(helper.isAllowedTarget("anyBranch")).willReturn(true);
 
         // WHEN
         ghprbRepository.check();
@@ -179,6 +183,7 @@ public class GhprbRepositoryTest {
         verify(helper, times(1)).isWhitelisted(eq(ghUser));  // Call to Github API
         verify(helper, times(2)).ifOnlyTriggerPhrase();
         verify(helper, times(1)).getBuilds();
+        verify(helper, times(2)).allowAllBranches();
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(1)).getEmail();   // Call to Github API
@@ -216,6 +221,7 @@ public class GhprbRepositoryTest {
 
         given(helper.ifOnlyTriggerPhrase()).willReturn(false);
         given(helper.isWhitelisted(ghUser)).willReturn(true);
+        given(helper.allowAllBranches()).willReturn(true);
 
         // WHEN
         ghprbRepository.check();  // PR was created
@@ -252,6 +258,7 @@ public class GhprbRepositoryTest {
         verify(helper).isOktotestPhrase(eq("comment body"));
         verify(helper).isRetestPhrase(eq("comment body"));
         verify(helper).isTriggerPhrase(eq("comment body"));
+        verify(helper, times(2)).allowAllBranches();
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(1)).getEmail();   // Call to Github API
@@ -281,6 +288,7 @@ public class GhprbRepositoryTest {
         given(ghPullRequest.getTitle()).willReturn("title");
         given(ghPullRequest.getUser()).willReturn(ghUser);
         given(ghPullRequest.getUrl()).willReturn(new URL("https://github.com/org/repo/pull/100"));
+        //given(ghprbPullRequest.isAllowedTarget()).willReturn(true);
 
         given(ghUser.getEmail()).willReturn("email");
         given(ghUser.getLogin()).willReturn("login");
@@ -288,6 +296,7 @@ public class GhprbRepositoryTest {
         given(helper.ifOnlyTriggerPhrase()).willReturn(false);
         given(helper.isRetestPhrase(eq("test this please"))).willReturn(true);
         given(helper.isWhitelisted(ghUser)).willReturn(true);
+        given(helper.allowAllBranches()).willReturn(true);
 
         // WHEN
         ghprbRepository.check();  // PR was created
@@ -312,8 +321,8 @@ public class GhprbRepositoryTest {
         verify(ghPullRequest, times(5)).getNumber();
         verify(ghPullRequest, times(4)).getUpdatedAt();
         verify(ghPullRequest, times(1)).getUrl();
-
         verify(ghPullRequest, times(1)).getComments();
+        verify(helper, times(2)).allowAllBranches();
         verifyNoMoreInteractions(ghPullRequest);
 
         verify(helper, times(2)).isWhitelisted(eq(ghUser));  // Call to Github API
@@ -404,6 +413,8 @@ public class GhprbRepositoryTest {
         pulls = new Hash<Integer, GhprbPullRequest>();
         ghprbRepository = new GhprbRepository(TEST_USER_NAME, TEST_REPO_NAME, helper, pulls);
         ghprbPullRequest = new GhprbPullRequest(ghPullRequest, helper, ghprbRepository);
+        
+       // given(ghprbPullRequest.isAllowedTarget()).willReturn(true);
 
         // Reset mocks not to mix init data invocations with tests
         reset(ghPullRequest, ghUser, helper, head, base);
