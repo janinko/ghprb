@@ -1,3 +1,4 @@
+
 package org.jenkinsci.plugins.ghprb;
 
 import org.junit.Test;
