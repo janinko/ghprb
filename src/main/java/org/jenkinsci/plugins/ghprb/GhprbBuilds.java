@@ -100,34 +100,9 @@ public class GhprbBuilds {
 
 		String publishedURL = GhprbTrigger.getDscp().getPublishedURL();
 		if (publishedURL != null && !publishedURL.isEmpty()) {
-			StringBuilder msg = new StringBuilder();
-
-			if (state == GHCommitState.SUCCESS) {
-				msg.append(GhprbTrigger.getDscp().getMsgSuccess());
-			} else {
-				msg.append(GhprbTrigger.getDscp().getMsgFailure());
+			if (GhprbTrigger.getDscp().isAddingBuildLinkAsComment()) {
+				addBuildLinkToComment(state, publishedURL, build, c);
 			}
-			msg.append("\nRefer to this link for build results: ");
-			msg.append(publishedURL).append(build.getUrl());
-
-			int numLines = GhprbTrigger.getDscp().getlogExcerptLines();
-			if (state != GHCommitState.SUCCESS && numLines > 0) {
-				// on failure, append an excerpt of the build log
-				try {
-					// wrap log in "code" markdown
-					msg.append("\n\n**Build Log**\n*last ").append(numLines).append(" lines*\n");
-					msg.append("\n ```\n");
-					List<String> log = build.getLog(numLines);
-					for (String line : log) {
-						msg.append(line).append('\n');
-					}
-					msg.append("```\n");
-				} catch (IOException ex) {
-					logger.log(Level.WARNING, "Can't add log excerpt to commit comments", ex);
-				}
-			}
-
-			repo.addComment(c.getPullID(), msg.toString());
 		}
 
 		// close failed pull request automatically
@@ -143,5 +118,34 @@ public class GhprbBuilds {
 				logger.log(Level.SEVERE, "Can't close pull request", ex);
 			}
 		}
+	}
+
+	private void addBuildLinkToComment(GHCommitState state, String publishedURL, AbstractBuild build, GhprbCause cause) {
+		StringBuilder msg = new StringBuilder();
+		if (state == GHCommitState.SUCCESS) {
+			msg.append(GhprbTrigger.getDscp().getMsgSuccess());
+		} else {
+			msg.append(GhprbTrigger.getDscp().getMsgFailure());
+		}
+		msg.append("\nRefer to this link for build results: ");
+		msg.append(publishedURL).append(build.getUrl());
+
+		int numLines = GhprbTrigger.getDscp().getlogExcerptLines();
+		if (state != GHCommitState.SUCCESS && numLines > 0) {
+			// on failure, append an excerpt of the build log
+			try {
+				// wrap log in "code" markdown
+				msg.append("\n\n**Build Log**\n*last ").append(numLines).append(" lines*\n");
+				msg.append("\n ```\n");
+				List<String> log = build.getLog(numLines);
+				for (String line : log) {
+					msg.append(line).append('\n');
+				}
+				msg.append("```\n");
+			} catch (IOException ex) {
+				logger.log(Level.WARNING, "Can't add log excerpt to commit comments", ex);
+			}
+		}
+		repo.addComment(cause.getPullID(), msg.toString());
 	}
 }

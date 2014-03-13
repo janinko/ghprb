@@ -282,6 +282,7 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 		private String retestPhrase = ".*test\\W+this\\W+please.*";
 		private String cron = "*/5 * * * *";
 		private Boolean useComments = false;
+		private Boolean addingBuildLinkAsComment = true;
 		private int logExcerptLines = 0;
 		private String unstableAs = GHCommitState.FAILURE.name();
 		private Boolean autoCloseFailedPullRequests = false;
@@ -325,6 +326,7 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 			retestPhrase = formData.getString("retestPhrase");
 			cron = formData.getString("cron");
 			useComments = formData.getBoolean("useComments");
+			addingBuildLinkAsComment = formData.getBoolean("addingBuildLinkAsComment");
 			logExcerptLines = formData.getInt("logExcerptLines");
 			unstableAs = formData.getString("unstableAs");
 			autoCloseFailedPullRequests = formData.getBoolean("autoCloseFailedPullRequests");
@@ -465,6 +467,10 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 
 		public List<GhprbBranch> getWhiteListTargetBranches() {
 			return whiteListTargetBranches;
+		}
+
+		public Boolean isAddingBuildLinkAsComment() {
+			return addingBuildLinkAsComment;
 		}
 	}
 
