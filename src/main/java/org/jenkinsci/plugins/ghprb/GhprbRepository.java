@@ -51,7 +51,7 @@ public class GhprbRepository {
 		}
 	}
 
-    private boolean checkState() {
+    public boolean checkState() {
         GitHub gitHub = null;
         try {
             gitHub = ml.getGitHub().get();
