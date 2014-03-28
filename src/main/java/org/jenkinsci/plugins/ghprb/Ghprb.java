@@ -192,6 +192,7 @@ public class Ghprb {
 			gml.repository = new GhprbRepository(user, repo, gml,pulls);
 			gml.repository.init();
 			if(gml.trigger.getUseGitHubHooks()){
+				gml.repository.checkState();
 				gml.repository.createHook();
 			}
 			gml.builds = new GhprbBuilds(gml.trigger,gml.repository);
