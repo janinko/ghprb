@@ -61,7 +61,7 @@ public class Ghprb {
 	}
 
 	public GhprbGitHub getGitHub() {
-		return trigger.getDescriptor().getGitHub();
+		return trigger.getGitHub();
 	}
 
 	void run() {

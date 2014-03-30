@@ -13,21 +13,27 @@ import org.kohsuke.github.GitHub;
 public class GhprbGitHub {
 	private static final Logger logger = Logger.getLogger(GhprbGitHub.class.getName());
 	private GitHub gh;
+	private String serverAPIUrl;
+	private String accessToken;
 
-	private void connect() throws IOException{
-		String accessToken = GhprbTrigger.getDscp().getAccessToken();
-		String serverAPIUrl = GhprbTrigger.getDscp().getServerAPIUrl();
-		if(accessToken != null && !accessToken.isEmpty()) {
-			try {
-				gh = GitHub.connectUsingOAuth(serverAPIUrl, accessToken);
-			} catch(IOException e) {
-				logger.log(Level.SEVERE, "Can''t connect to {0} using oauth", serverAPIUrl);
-				throw e;
-			}
-		} else {
-			gh = GitHub.connect(GhprbTrigger.getDscp().getUsername(), null, GhprbTrigger.getDscp().getPassword());
+        public GhprbGitHub(){
+		this.serverAPIUrl = GhprbTrigger.getDscp().getServerAPIUrl();
+		this.accessToken = GhprbTrigger.getDscp().getAccessToken();
+        }
+
+        public GhprbGitHub(String serverAPIUrl, String accessToken){
+                this.serverAPIUrl = serverAPIUrl == "" ? GhprbTrigger.getDscp().getServerAPIUrl() : serverAPIUrl;
+                this.accessToken = accessToken == "" ? GhprbTrigger.getDscp().getAccessToken() : accessToken;
+        }
+
+        private void connect() throws IOException{
+		try {
+			gh = GitHub.connectUsingOAuth(this.serverAPIUrl, this.accessToken);
+		} catch(IOException e) {
+			logger.log(Level.SEVERE, "Can''t connect to {0} using oauth", serverAPIUrl);
+			throw e;
 		}
-	}
+        }
 
 	public GitHub get() throws IOException{
 		if(gh == null){

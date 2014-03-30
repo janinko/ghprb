@@ -44,6 +44,8 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 
     private static final Logger logger = Logger.getLogger(GhprbTrigger.class.getName());
 
+	private final String serverAPIUrl;
+	private final String accessToken;
 	private final String adminlist;
 	private       String whitelist;
 	private final String orgslist;
@@ -58,7 +60,9 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
     transient private Ghprb ml;
 
 	@DataBoundConstructor
-	public GhprbTrigger(String adminlist,
+	public GhprbTrigger(String serverAPIUrl,
+                        String accessToken,
+                        String adminlist,
                         String whitelist,
                         String orgslist,
                         String cron,
@@ -69,6 +73,8 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
                         Boolean autoCloseFailedPullRequests,
                         List<GhprbBranch> whiteListTargetBranches) throws ANTLRException{
 		super(cron);
+                this.serverAPIUrl = serverAPIUrl;
+                this.accessToken = accessToken;
 		this.adminlist = adminlist;
 		this.whitelist = whitelist;
 		this.orgslist = orgslist;
@@ -191,6 +197,20 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 		}
 	}
 
+	public String getServerAPIUrl() {
+		if(serverAPIUrl == null){
+			return "";
+		}
+		return serverAPIUrl;
+	}
+
+	public String getAccessToken() {
+		if(accessToken == null){
+			return "";
+		}
+		return accessToken;
+	}
+
 	public String getAdminlist() {
 		if(adminlist == null){
 			return "";
@@ -255,6 +275,10 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 		Trigger trigger = p.getTrigger(GhprbTrigger.class);
 		if(trigger == null || (!(trigger instanceof GhprbTrigger))) return null;
 		return (GhprbTrigger) trigger;
+	}
+
+	public GhprbGitHub getGitHub(){
+		return new GhprbGitHub(getServerAPIUrl(), getAccessToken());
 	}
 
 	@Override
