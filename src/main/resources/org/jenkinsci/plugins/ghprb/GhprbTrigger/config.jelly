@@ -6,6 +6,12 @@
     <f:checkbox />
   </f:entry>
   <f:advanced>
+	<f:entry title="${%GitHub server api URL}" field="serverAPIUrl">
+	  <f:textbox default="${descriptor.serverAPIUrl}"/>
+	</f:entry>
+	<f:entry title="${%Access Token}" field="accessToken">
+	  <f:password default="${descriptor.accessToken}"/>
+	</f:entry>
 	<f:entry title="${%Trigger phrase}" field="triggerPhrase">
 	  <f:textbox />
 	</f:entry>
