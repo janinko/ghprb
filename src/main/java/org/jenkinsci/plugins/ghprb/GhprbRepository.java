@@ -128,7 +128,7 @@ public class GhprbRepository {
                 logger.log(Level.INFO, "Could not update commit status of the Pull Request on GitHub. Trying to send comment.", ex);
                 if (state == GHCommitState.SUCCESS) {
                     message = message + " " + GhprbTrigger.getDscp().getMsgSuccess();
-                } else {
+                } else if (state == GHCommitState.FAILURE) {
                     message = message + " " + GhprbTrigger.getDscp().getMsgFailure();
                 }
                 addComment(id, message);
