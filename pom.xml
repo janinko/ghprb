@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>1.532</version>
     </parent>
-
     <artifactId>ghprb</artifactId>
     <name>GitHub Pull Request Builder</name>
     <version>1.15-2-SNAPSHOT</version>
     <packaging>hpi</packaging>
-
     <url>https://wiki.jenkins-ci.org/display/JENKINS/GitHub+pull+request+builder+plugin</url>
-
     <developers>
         <developer>
             <id>janinko</id>
@@ -31,23 +28,19 @@
             <email>david.joel.tanner@gmail.com</email>
         </developer>
     </developers>
-
     <scm>
         <connection>scm:git:ssh://github.com/jenkinsci/ghprb-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/ghprb-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/ghprb-plugin</url>
         <tag>HEAD</tag>
     </scm>
-
     <issueManagement>
         <system>GitHub</system>
         <url>https://github.com/janinko/ghprb/issues</url>
     </issueManagement>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.coravy.hudson.plugins.github</groupId>
@@ -93,8 +86,13 @@
             <version>1.10</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.cloudbees.plugins</groupId>
+            <artifactId>build-flow-plugin</artifactId>
+            <version>0.12</version>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -109,7 +107,6 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -141,7 +138,6 @@
             </plugin>
         </plugins>
     </build>
-
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
@@ -153,14 +149,12 @@
             <url>http://download.eclipse.org/jgit/maven</url>
         </repository>
     </repositories>
-
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
             <url>http://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
-
     <distributionManagement>
         <repository>
             <id>maven.jenkins-ci.org</id>
