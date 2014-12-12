@@ -125,7 +125,17 @@ public class GhprbRepository {
     public void createCommitStatus(AbstractBuild<?, ?> build, String sha1, GHCommitState state, String url, String message, int id) {
         logger.log(Level.INFO, "Setting status of {0} to {1} with url {2} and message: {3}", new Object[]{sha1, state, url, message});
         try {
-            ghRepository.createCommitStatus(sha1, state, url, message);
+            String context = build.getParent().getDisplayName();
+            if (context == null) {
+                context = "";
+            }
+            context = context.replaceAll("\\W+", "_").replaceAll("^_", "").replaceAll("_$", "");
+            if (context.isEmpty()) {
+                context = "default";
+            } else{
+                context = "ghprb_" + context;
+            }
+            ghRepository.createCommitStatus(sha1, state, url, message, context);
         } catch (IOException ex) {
             if (GhprbTrigger.getDscp().getUseComments()) {
                 logger.log(Level.INFO, "Could not update commit status of the Pull Request on GitHub. Trying to send comment.", ex);
