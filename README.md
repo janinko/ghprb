@@ -1,3 +1,10 @@
+# Multiple Github Pull Request Builder Plugin
+
+A bug is in 'janinko/ghprb multiple-github' branch.
+The Bug is one API URL is set to all projects.
+
+So, I fixed it.
+
 # GitHub Pull Request Builder Plugin
 
 This Jenkins plugin builds pull requests from GitHub and will report the results directly to the pull request via
