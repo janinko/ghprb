@@ -57,10 +57,10 @@
         <f:textbox default="H/5 * * * *" checkUrl="'descriptorByName/hudson.triggers.TimerTrigger/checkSpec?value=' + encodeURIComponent(this.value)"/>
       </f:entry>
       <f:entry title="${%Default success message}" field="msgSuccess">
-        <f:textarea default="Test PASSed."/>
+        <f:textarea default=":white_check_mark: Test PASSed."/>
       </f:entry>
       <f:entry title="${%Default failure message}" field="msgFailure">
-        <f:textarea default="Test FAILed."/>
+        <f:textarea default=":boom: Test FAILed."/>
       </f:entry>
       <f:entry title="${%Username}" field="username">
         <f:textbox />
