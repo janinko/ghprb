@@ -295,7 +295,7 @@ public class GhprbPullRequest {
 
     private void checkComment(GHIssueComment comment) throws IOException {
         GHUser sender = comment.getUser();
-        String body = comment.getBody();
+        String body = comment.getBody().toLowerCase();
 
         // Disabled until more advanced configs get set up
         // ignore comments from bot user, this fixes an issue where the bot would auto-whitelist
