@@ -1,10 +1,48 @@
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
   <f:section title="${descriptor.displayName}">
-    <f:entry title="${%GitHub server api URL}" field="serverAPIUrl">
-      <f:textbox default="http://api.github.com"/>
-    </f:entry>
-    <f:entry title="${%Access Token}" field="accessToken">
-      <f:password />
+    <f:entry title="Credentials">
+      <f:repeatable var="credential" items="${descriptor.credentials}" add="Add" header="Github credentials">
+        <table width="100%">
+          <f:entry title="${%Credentials Name}">
+            <f:textbox name="credential.name" value="${credential.name}" default="default"/>
+          </f:entry>
+          <f:entry title="${%GitHub server api URL}">
+            <f:textbox name="credential.serverApiUrl" value="${credential.serverApiUrl}" default="https://api.github.com"/>
+          </f:entry>
+          <f:entry title="${%Ignore Bot User}">
+            <f:checkbox name="credential.ignoreBotUser" value="${credential.ignoreBotUser}"/>
+          </f:entry>
+
+          <f:entry title="${%Access Token}">
+            <f:password name="credential.accessToken" value="${credential.accessToken}"/>
+          </f:entry>
+
+          <f:entry title="${%Published Jenkins URL}">
+            <f:textbox name="credential.publishedUrl" value="${credential.publishedUrl}"/>
+          </f:entry>
+
+          <f:entry title="${%Username}">
+            <f:textbox name="credential.username" value="${credential.username}"/>
+          </f:entry>
+          <f:entry title="${%Password}">
+            <f:password name="credential.password" value="${credential.password}"/>
+          </f:entry>
+
+          <f:advanced>
+            <f:validateButton title="${%Create access token}" progress="${%Creating...}"
+              method="createApiToken" with="credential.serverApiUrl,credential.username,credential.password" />
+            <f:validateButton
+              title="${%Test Github Credentials}" progress="${%Loading...}"
+              method="testGithubAccess" with="credential.serverApiUrl,credential.username,credential.password,credential.accessToken" />
+          </f:advanced>
+
+          <f:entry title="">
+            <div align="right">
+              <f:repeatableDeleteButton value="Delete"/>
+            </div>
+          </f:entry>
+        </table>
+      </f:repeatable>
     </f:entry>
     <f:entry title="${%Use comments to report results when updating commit status fails}" field="useComments">
       <f:checkbox />
@@ -25,9 +63,6 @@
           <option value="SUCCESS">Success</option>
           <option value="ERROR">Error</option>
         </select>
-      </f:entry>
-      <f:entry title="${%Published Jenkins URL}" field="publishedURL">
-        <f:textbox/>
       </f:entry>
       <f:entry title="${%Close failed pull request automatically?}" field="autoCloseFailedPullRequests">
         <f:checkbox />
@@ -62,14 +97,7 @@
       <f:entry title="${%Default failure message}" field="msgFailure">
         <f:textarea default="Test FAILed."/>
       </f:entry>
-      <f:entry title="${%Username}" field="username">
-        <f:textbox />
-      </f:entry>
-      <f:entry title="${%Password}" field="password">
-        <f:password />
-      </f:entry>
-      <f:validateButton title="${%Create access token}" progress="${%Creating...}"
-        method="createApiToken" with="username,password" />
     </f:advanced>
+
   </f:section>
 </j:jelly>

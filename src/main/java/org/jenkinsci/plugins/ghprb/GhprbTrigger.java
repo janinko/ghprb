@@ -9,14 +9,18 @@ import hudson.Extension;
 import hudson.model.*;
 import hudson.model.AbstractProject;
 import hudson.model.queue.QueueTaskFuture;
+import hudson.plugins.git.RevisionParameterAction;
 import hudson.plugins.git.util.BuildData;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.github.GHAuthorization;
 import org.kohsuke.github.GHCommitState;
+import org.kohsuke.github.GHMyself;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -41,6 +45,7 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
     private static final Logger logger = Logger.getLogger(GhprbTrigger.class.getName());
     private final String adminlist;
+    private GhprbGithubCredentials credentials;
     private final Boolean allowMembersOfWhitelistedOrgsAsAdmin;
     private final String orgslist;
     private final String cron;
@@ -59,23 +64,59 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
     private transient Ghprb helper;
     private String project;
 
-    @DataBoundConstructor
-    public GhprbTrigger(String adminlist, 
-            String whitelist, 
-            String orgslist, 
-            String cron, 
-            String triggerPhrase, 
-            Boolean onlyTriggerPhrase, 
-            Boolean useGitHubHooks, 
+    public GhprbTrigger(String adminlist,
+            String whitelist,
+            String orgslist,
+            String cron,
+            String triggerPhrase,
+            Boolean onlyTriggerPhrase,
+            Boolean useGitHubHooks,
             Boolean permitAll,
-            Boolean autoCloseFailedPullRequests, 
-            Boolean displayBuildErrorsOnDownstreamBuilds, 
-            String commentFilePath, 
+            Boolean autoCloseFailedPullRequests,
+            Boolean displayBuildErrorsOnDownstreamBuilds,
+            String commentFilePath,
             List<GhprbBranch> whiteListTargetBranches,
-            Boolean allowMembersOfWhitelistedOrgsAsAdmin, 
-            String msgSuccess, 
-            String msgFailure, 
+            Boolean allowMembersOfWhitelistedOrgsAsAdmin,
+            String msgSuccess,
+            String msgFailure,
             String commitStatusContext) throws ANTLRException {
+        this(adminlist,
+                whitelist,
+                orgslist,
+                cron,
+                triggerPhrase,
+                onlyTriggerPhrase,
+                useGitHubHooks,
+                permitAll,
+                autoCloseFailedPullRequests,
+                displayBuildErrorsOnDownstreamBuilds,
+                commentFilePath,
+                whiteListTargetBranches,
+                allowMembersOfWhitelistedOrgsAsAdmin,
+                msgSuccess,
+                msgFailure,
+                commitStatusContext,
+                "");
+        }
+
+    @DataBoundConstructor
+    public GhprbTrigger(String adminlist,
+            String whitelist,
+            String orgslist,
+            String cron,
+            String triggerPhrase,
+            Boolean onlyTriggerPhrase,
+            Boolean useGitHubHooks,
+            Boolean permitAll,
+            Boolean autoCloseFailedPullRequests,
+            Boolean displayBuildErrorsOnDownstreamBuilds,
+            String commentFilePath,
+            List<GhprbBranch> whiteListTargetBranches,
+            Boolean allowMembersOfWhitelistedOrgsAsAdmin,
+            String msgSuccess,
+            String msgFailure,
+            String commitStatusContext,
+            String credentials) throws ANTLRException {
         super(cron);
         this.adminlist = adminlist;
         this.whitelist = whitelist;
@@ -93,6 +134,54 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
         this.allowMembersOfWhitelistedOrgsAsAdmin = allowMembersOfWhitelistedOrgsAsAdmin;
         this.msgSuccess = msgSuccess;
         this.msgFailure = msgFailure;
+
+        if (credentials == null || credentials.isEmpty()) {
+            this.credentials = DESCRIPTOR.getDefaultCredentials();
+        } else {
+            this.credentials = DESCRIPTOR.getCredentials(credentials);
+        }
+    }
+
+    public GhprbTrigger(String adminlist,
+            String whitelist,
+            String orgslist,
+            String cron,
+            String triggerPhrase,
+            Boolean onlyTriggerPhrase,
+            Boolean useGitHubHooks,
+            Boolean permitAll,
+            Boolean autoCloseFailedPullRequests,
+            Boolean displayBuildErrorsOnDownstreamBuilds,
+            String commentFilePath,
+            List<GhprbBranch> whiteListTargetBranches,
+            Boolean allowMembersOfWhitelistedOrgsAsAdmin,
+            String msgSuccess,
+            String msgFailure,
+            String commitStatusContext,
+            GhprbGithubCredentials credentials) throws ANTLRException {
+        super(cron);
+        this.adminlist = adminlist;
+        this.whitelist = whitelist;
+        this.orgslist = orgslist;
+        this.cron = cron;
+        this.triggerPhrase = triggerPhrase;
+        this.onlyTriggerPhrase = onlyTriggerPhrase;
+        this.useGitHubHooks = useGitHubHooks;
+        this.permitAll = permitAll;
+        this.autoCloseFailedPullRequests = autoCloseFailedPullRequests;
+        this.displayBuildErrorsOnDownstreamBuilds = displayBuildErrorsOnDownstreamBuilds;
+        this.whiteListTargetBranches = whiteListTargetBranches;
+        this.commitStatusContext = commitStatusContext;
+        this.commentFilePath = commentFilePath;
+        this.allowMembersOfWhitelistedOrgsAsAdmin = allowMembersOfWhitelistedOrgsAsAdmin;
+        this.msgSuccess = msgSuccess;
+        this.msgFailure = msgFailure;
+
+        if (credentials == null) {
+            this.credentials = DESCRIPTOR.getDefaultCredentials();
+        } else {
+            this.credentials = credentials;
+        }
     }
 
     public static GhprbTrigger extractTrigger(AbstractProject<?, ?> p) {
@@ -105,6 +194,14 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 
     public static DescriptorImpl getDscp() {
         return DESCRIPTOR;
+    }
+
+    public GhprbGithubCredentials getCredentials() {
+        if (this.credentials == null) {
+            this.credentials = DESCRIPTOR.getDefaultCredentials();
+        }
+        DESCRIPTOR.saveSetup();
+        return credentials;
     }
 
     @Override
@@ -125,7 +222,7 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
             return;
         }
 
-        logger.log(Level.INFO, "Starting the ghprb trigger for the {0} job; newInstance is {1}", 
+        logger.log(Level.INFO, "Starting the ghprb trigger for the {0} job; newInstance is {1}",
                 new String[] { this.project, String.valueOf(newInstance) });
         super.start(project, newInstance);
         helper.init();
@@ -151,16 +248,17 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
         if (getUseGitHubHooks()) {
             return;
         }
-        
-        if (helper.isProjectDisabled()) {
-            logger.log(Level.FINE, "Project is disabled, ignoring trigger run call");
-            return;
-        }
-        
+
         if (helper == null) {
             logger.log(Level.SEVERE, "Helper is null, unable to run trigger");
             return;
         }
+
+        if (helper.isProjectDisabled()) {
+            logger.log(Level.FINE, "Project is disabled, ignoring trigger run call");
+            return;
+        }
+
         helper.run();
         getDescriptor().save();
     }
@@ -170,20 +268,10 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
         final String commitSha = cause.isMerged() ? "origin/pr/" + cause.getPullID() + "/merge" : cause.getCommit();
         values.add(new StringParameterValue("sha1", commitSha));
         values.add(new StringParameterValue("ghprbActualCommit", cause.getCommit()));
-        String triggerAuthor = "";
-        String triggerAuthorEmail = "";
 
-        try {
-            triggerAuthor = getString(cause.getTriggerSender().getName(), "");
-        } catch (Exception e) {}
-        try {
-            triggerAuthorEmail = getString(cause.getTriggerSender().getEmail(), "");
-        } catch (Exception e) {}
-
+        setTriggerSender(cause, values);
         setCommitAuthor(cause, values);
 
-        values.add(new StringParameterValue("ghprbTriggerAuthor", triggerAuthor));
-        values.add(new StringParameterValue("ghprbTriggerAuthorEmail", triggerAuthorEmail));
         final StringParameterValue pullIdPv = new StringParameterValue("ghprbPullId", String.valueOf(cause.getPullID()));
         values.add(pullIdPv);
         values.add(new StringParameterValue("ghprbTargetBranch", String.valueOf(cause.getTargetBranch())));
@@ -191,14 +279,34 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
         values.add(new StringParameterValue("GIT_BRANCH", String.valueOf(cause.getSourceBranch())));
         // it's possible the GHUser doesn't have an associated email address
         values.add(new StringParameterValue("ghprbPullAuthorEmail", getString(cause.getAuthorEmail(), "")));
-        values.add(new StringParameterValue("ghprbPullDescription", String.valueOf(cause.getShortDescription())));
+        values.add(new StringParameterValue("ghprbPullDescription", escapeQuotes(String.valueOf(cause.getShortDescription()))));
         values.add(new StringParameterValue("ghprbPullTitle", String.valueOf(cause.getTitle())));
         values.add(new StringParameterValue("ghprbPullLink", String.valueOf(cause.getUrl())));
 
         // add the previous pr BuildData as an action so that the correct change log is generated by the GitSCM plugin
         // note that this will be removed from the Actions list after the job is completed so that the old (and incorrect)
         // one isn't there
-        return this.job.scheduleBuild2(job.getQuietPeriod(), cause, new ParametersAction(values), findPreviousBuildForPullId(pullIdPv));
+        return this.job.scheduleBuild2(job.getQuietPeriod(), cause, new ParametersAction(values), findPreviousBuildForPullId(pullIdPv), new RevisionParameterAction(cause.getCommit()));
+    }
+
+    private void setTriggerSender(GhprbCause cause, ArrayList<ParameterValue> values) {
+        String triggerAuthor = "";
+        String triggerAuthorEmail = "";
+
+        try {
+            triggerAuthor = getString(cause.getTriggerSender().getName(), "");
+            } catch (Exception e) {}
+        try {
+            triggerAuthorEmail = getString(cause.getTriggerSender().getEmail(), "");
+            } catch (Exception e) {}
+
+        values.add(new StringParameterValue("ghprbTriggerAuthor", triggerAuthor));
+        values.add(new StringParameterValue("ghprbTriggerAuthorEmail", triggerAuthorEmail));
+
+    }
+
+    private String escapeQuotes(String value) {
+        return Pattern.compile("\"").matcher(value).replaceAll("\\\\\"");
     }
 
     private void setCommitAuthor(GhprbCause cause, ArrayList<ParameterValue> values) {
@@ -377,13 +485,12 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
         private static final Pattern adminlistPattern = Pattern.compile("((\\p{Alnum}[\\p{Alnum}-]*)|\\s)*");
 
         /**
-         * These settings only really affect testing. When Jenkins calls configure() then the formdata will 
+         * These settings only really affect testing. When Jenkins calls configure() then the formdata will
          * be used to replace all of these fields. Leaving them here is useful for
          * testing, but must not be confused with a default. They also should not be used as the default 
          * value in the global.jelly file as this value is dynamic and will not be
          * retained once configure() is called.
          */
-        private String serverAPIUrl = "https://api.github.com";
         private String whitelistPhrase = ".*add\\W+to\\W+whitelist.*";
         private String okToTestPhrase = ".*ok\\W+to\\W+test.*";
         private String retestPhrase = ".*test\\W+this\\W+please.*";
@@ -399,14 +506,20 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
         private String commitStatusContext = "";
         private Boolean autoCloseFailedPullRequests = false;
         private Boolean displayBuildErrorsOnDownstreamBuilds = false;
+        private Set<GhprbGithubCredentials> credentials;
 
+        /**
+         * Deprecated fields
+         */
         private String username;
         private String password;
         private String accessToken;
-        private String adminlist;
+        private String serverAPIUrl;
         private String publishedURL;
+
+        private String adminlist;
         private String requestForTestingPhrase;
-        private transient GhprbGitHub gh;
+
         // map of jobs (by their fullName) abd their map of pull requests
         private Map<String, ConcurrentMap<Integer, GhprbPullRequest>> jobs;
 
@@ -415,6 +528,23 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
             if (jobs == null) {
                 jobs = new HashMap<String, ConcurrentMap<Integer, GhprbPullRequest>>();
             }
+            if (credentials == null) {
+                credentials = new HashSet<GhprbGithubCredentials>(1);
+            }
+
+            if (credentials.size() <= 0 && serverAPIUrl != null && !serverAPIUrl.isEmpty()) {
+                credentials.add(new GhprbGithubCredentials("default", serverAPIUrl, username, password, accessToken, publishedURL, false));
+                save();
+            }
+        }
+
+        public GhprbGithubCredentials getCredentials(String credentialsString) {
+            for (GhprbGithubCredentials creds : credentials) {
+                if (creds.getDisplayName().equals(credentialsString)) {
+                    return creds;
+                }
+            }
+            return null;
         }
 
         @Override
@@ -429,12 +559,7 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            serverAPIUrl = formData.getString("serverAPIUrl");
-            username = formData.getString("username");
-            password = formData.getString("password");
-            accessToken = formData.getString("accessToken");
             adminlist = formData.getString("adminlist");
-            publishedURL = formData.getString("publishedURL");
             requestForTestingPhrase = formData.getString("requestForTestingPhrase");
             whitelistPhrase = formData.getString("whitelistPhrase");
             okToTestPhrase = formData.getString("okToTestPhrase");
@@ -450,10 +575,47 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
             msgSuccess = formData.getString("msgSuccess");
             msgFailure = formData.getString("msgFailure");
             commitStatusContext = formData.getString("commitStatusContext");
+            credentials = new HashSet<GhprbGithubCredentials>(1);
+
+            if (formData.has("credential")) {
+                final Object credential = formData.get("credential");
+                if (credential instanceof JSONArray) {
+                    JSONArray credsArray = formData.getJSONArray("credential");
+                    int length = credsArray.size();
+                    for (int i = 0; i < length; ++i) {
+                        credentials.add(new GhprbGithubCredentials(credsArray.getJSONObject(i)));
+                    }
+                } else if (credential instanceof JSONObject) {
+                    credentials.add(new GhprbGithubCredentials(formData.getJSONObject("credential")));
+                } else {
+                    logger.log(Level.SEVERE, "credential is not JSONArray and JSONObject");
+                }
+            } else if (formData.has("serverAPIUrl")) {
+                credentials.add(new GhprbGithubCredentials("default",
+                formData.getString("serverAPIUrl"), formData.getString("username"),
+                formData.getString("password"), formData.getString("accessToken"),
+                formData.getString("publishedURL"), false));
+            }
 
             save();
-            gh = new GhprbGitHub();
             return super.configure(req, formData);
+        }
+
+        public Set<GhprbGithubCredentials> getCredentials() {
+            return credentials;
+        }
+
+        public ListBoxModel doFillCredentialsItems(@QueryParameter String credentials) {
+            ListBoxModel items = new ListBoxModel();
+            for (GhprbGithubCredentials creds : this.credentials) {
+
+                items.add(creds, creds.toString());
+                if (creds.toString().equals(credentials)) {
+                    items.get(items.size() - 1).selected = true;
+                }
+            }
+
+            return items;
         }
 
         public FormValidation doCheckAdminlist(@QueryParameter String value) throws ServletException {
@@ -464,7 +626,7 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
             return FormValidation.ok();
         }
 
-        public FormValidation doCheckServerAPIUrl(@QueryParameter String value) {
+        public FormValidation doCheckCredentialsServerAPIUrl(@QueryParameter String value) {
             if ("https://api.github.com".equals(value)) {
                 return FormValidation.ok();
             }
@@ -474,24 +636,8 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
             return FormValidation.warning("GitHub API URI is \"https://api.github.com\". GitHub Enterprise API URL ends with \"/api/v3\"");
         }
 
-        public String getUsername() {
-            return username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public String getAccessToken() {
-            return accessToken;
-        }
-
         public String getAdminlist() {
             return adminlist;
-        }
-
-        public String getPublishedURL() {
-            return publishedURL;
         }
 
         public String getRequestForTestingPhrase() {
@@ -538,10 +684,6 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
             return displayBuildErrorsOnDownstreamBuilds;
         }
 
-        public String getServerAPIUrl() {
-            return serverAPIUrl;
-        }
-
         public String getUnstableAs() {
             return unstableAs;
         }
@@ -570,19 +712,6 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
             return commitStatusContext;
         }
 
-        public GhprbGitHub getGitHub() {
-            if (gh == null) {
-                gh = new GhprbGitHub();
-            }
-            return gh;
-        }
-        
-
-        @VisibleForTesting
-        void setGitHub(GhprbGitHub gh) {
-            this.gh = gh;
-        }
-
         public ConcurrentMap<Integer, GhprbPullRequest> getPullRequests(String projectName) {
             ConcurrentMap<Integer, GhprbPullRequest> ret;
             if (jobs.containsKey(projectName)) {
@@ -599,13 +728,31 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
             return ret;
         }
 
-        public FormValidation doCreateApiToken(@QueryParameter("username") final String username, 
-                @QueryParameter("password") final String password) {
+        public FormValidation doCreateApiToken(@QueryParameter("credential.serverApiUrl") final String serverApiUrl,
+                @QueryParameter("credential.username") final String username,
+                @QueryParameter("credential.password") final String password) {
             try {
-                GitHub gh = GitHub.connectToEnterprise(this.serverAPIUrl, username, password);
-                GHAuthorization token = gh.createToken(Arrays.asList(GHAuthorization.REPO_STATUS, 
-                        GHAuthorization.REPO), "Jenkins GitHub Pull Request Builder", null);
+                GitHub gh = GitHub.connectToEnterprise(serverApiUrl, username, password);
+                GHAuthorization token = gh.createToken(Arrays.asList(GHAuthorization.REPO_STATUS, GHAuthorization.REPO), "Jenkins GitHub Pull Request Builder", null);
                 return FormValidation.ok("Access token created: " + token.getToken());
+            } catch (IOException ex) {
+                return FormValidation.error("GitHub API token couldn't be created: " + ex.getMessage());
+            }
+        }
+
+        public FormValidation doTestGithubAccess(@QueryParameter("credential.serverApiUrl") final String serverApiUrl,
+                @QueryParameter("credential.accessToken") final String accessToken,
+                @QueryParameter("credential.username") final String username,
+                @QueryParameter("credential.password") final String password) {
+            try {
+                GitHub gh;
+                if (accessToken != null && !accessToken.isEmpty()) {
+                    gh = GitHub.connectUsingOAuth(serverApiUrl, accessToken);
+                } else {
+                    gh = GitHub.connectToEnterprise(serverApiUrl, accessToken);
+                }
+                GHMyself me = gh.getMyself();
+                return FormValidation.ok("Connected to " + serverApiUrl + " as " + me.getName());
             } catch (IOException ex) {
                 return FormValidation.error("GitHub API token couldn't be created: " + ex.getMessage());
             }
@@ -613,6 +760,17 @@ public class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 
         public List<GhprbBranch> getWhiteListTargetBranches() {
             return whiteListTargetBranches;
+        }
+
+        public void saveSetup() {
+            save();
+        }
+
+        public GhprbGithubCredentials getDefaultCredentials() {
+            if (credentials != null && credentials.iterator().hasNext()) {
+                return credentials.iterator().next();
+            }
+            return null;
         }
     }
 }

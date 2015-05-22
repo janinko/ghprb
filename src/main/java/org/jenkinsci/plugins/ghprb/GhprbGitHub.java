@@ -17,25 +17,36 @@ import com.google.common.annotations.VisibleForTesting;
 public class GhprbGitHub {
     private static final Logger logger = Logger.getLogger(GhprbGitHub.class.getName());
     private GitHub gh;
+    private final GhprbGithubCredentials credentials;
+
+    public GhprbGitHub(GhprbGithubCredentials credentials){
+        this.credentials = credentials;
+    }
+
 
     private void connect() throws IOException {
-        String accessToken = GhprbTrigger.getDscp().getAccessToken();
-        String serverAPIUrl = GhprbTrigger.getDscp().getServerAPIUrl();
+        String serverApiUrl = credentials.getServerApiUrlString();
+        String accessToken = credentials.getAccessToken();
         if (accessToken != null && !accessToken.isEmpty()) {
             try {
-                gh = new GitHubBuilder().withEndpoint(serverAPIUrl)
-                        .withOAuthToken(accessToken).withConnector(new HttpConnectorWithJenkinsProxy()).build();
+                gh = new GitHubBuilder()
+                        .withEndpoint(serverApiUrl)
+                        .withOAuthToken(accessToken)
+                        .withConnector(new HttpConnectorWithJenkinsProxy()).build();
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "Can''t connect to {0} using oauth", serverAPIUrl);
+                logger.log(Level.SEVERE, "Can''t connect to {0} using oauth", serverApiUrl);
                 throw e;
             }
         } else {
-            if (serverAPIUrl.contains("api/v3")) {
-                gh = GitHub.connectToEnterprise(serverAPIUrl, 
-                        GhprbTrigger.getDscp().getUsername(), GhprbTrigger.getDscp().getPassword());
+            String username = credentials.getUsername();
+            String password = credentials.getPassword();
+            if (serverApiUrl.contains("api/v3")) {
+                gh = GitHub.connectToEnterprise(serverApiUrl, username,password);
             } else {
-                gh = new GitHubBuilder().withPassword(GhprbTrigger.getDscp().getUsername(), 
-                        GhprbTrigger.getDscp().getPassword()).withConnector(new HttpConnectorWithJenkinsProxy()).build();
+                gh = new GitHubBuilder()
+                        .withPassword(username, password)
+                        .withConnector(new HttpConnectorWithJenkinsProxy())
+                        .build();
             }
         }
     }

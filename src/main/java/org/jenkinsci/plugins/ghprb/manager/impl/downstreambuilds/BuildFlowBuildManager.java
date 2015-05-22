@@ -6,10 +6,10 @@ import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.ghprb.manager.impl.GhprbBaseBuildManager;
 import org.jenkinsci.plugins.ghprb.manager.configuration.JobConfiguration;
-
 import org.jgrapht.DirectedGraph;
 
 import com.cloudbees.plugins.flow.FlowRun;
+import com.cloudbees.plugins.flow.FlowRun.JobEdge;
 import com.cloudbees.plugins.flow.JobInvocation;
 
 import hudson.model.AbstractBuild;
@@ -22,11 +22,11 @@ public class BuildFlowBuildManager extends GhprbBaseBuildManager {
 
     private static final Logger logger = Logger.getLogger(BuildFlowBuildManager.class.getName());
 
-    public BuildFlowBuildManager(AbstractBuild build) {
+    public BuildFlowBuildManager(AbstractBuild<?,?> build) {
         super(build);
     }
 
-    public BuildFlowBuildManager(AbstractBuild build, JobConfiguration jobConfiguration) {
+    public BuildFlowBuildManager(AbstractBuild<?,?> build, JobConfiguration jobConfiguration) {
         super(build, jobConfiguration);
     }
 
@@ -37,12 +37,12 @@ public class BuildFlowBuildManager extends GhprbBaseBuildManager {
      */
     @Override
     public String calculateBuildUrl() {
-        Iterator<JobInvocation> iterator = downstreamProjects();
+        Iterator<?> iterator = downstreamProjects();
 
         StringBuilder sb = new StringBuilder();
 
         while (iterator.hasNext()) {
-            JobInvocation jobInvocation = iterator.next();
+            JobInvocation jobInvocation = (JobInvocation)iterator.next();
 
             sb.append("\n");
             sb.append("<a href='");
@@ -61,10 +61,10 @@ public class BuildFlowBuildManager extends GhprbBaseBuildManager {
      * @return the downstream builds as an iterator
      */
     @Override
-    public Iterator downstreamProjects() {
+    public Iterator<?> downstreamProjects() {
         FlowRun flowRun = (FlowRun) build;
 
-        DirectedGraph directedGraph = flowRun.getJobsGraph();
+        DirectedGraph<JobInvocation, JobEdge> directedGraph = flowRun.getJobsGraph();
 
         return directedGraph.vertexSet().iterator();
     }
@@ -76,15 +76,15 @@ public class BuildFlowBuildManager extends GhprbBaseBuildManager {
      */
     @Override
     public String getTestResults() {
-        Iterator<JobInvocation> iterator = downstreamProjects();
+        Iterator<?> iterator = downstreamProjects();
 
         StringBuilder sb = new StringBuilder();
 
         while (iterator.hasNext()) {
-            JobInvocation jobInvocation = iterator.next();
+            JobInvocation jobInvocation = (JobInvocation)iterator.next();
 
             try {
-                AbstractBuild build = (AbstractBuild) jobInvocation.getBuild();
+                AbstractBuild<?,?> build = (AbstractBuild<?,?>) jobInvocation.getBuild();
 
                 AggregatedTestResultAction testResultAction = build.getAction(AggregatedTestResultAction.class);
 

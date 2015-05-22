@@ -85,7 +85,7 @@ public class GhprbPullRequest {
             repo.addComment(id, GhprbTrigger.getDscp().getRequestForTestingPhrase());
         }
 
-        logger.log(Level.INFO, "Created Pull Request #{0} on {1} by {2} ({3}) updated at: {4} SHA: {5}", 
+        logger.log(Level.INFO, "Created Pull Request #{0} on {1} by {2} ({3}) updated at: {4} SHA: {5}",
                 new Object[] { id, reponame, author.getLogin(), authorEmail, updated, head }
         );
     }
@@ -159,7 +159,7 @@ public class GhprbPullRequest {
 
             if (!newCommit && commentsChecked == 0) {
                 logger.log(Level.INFO, "Pull request #{0} was updated on repo {1} but there aren''t any new comments nor commits; "
-                        + "that may mean that commit status was updated.", 
+                        + "that may mean that commit status was updated.",
                         new Object[] { id, reponame }
                 );
             }
@@ -209,7 +209,7 @@ public class GhprbPullRequest {
                 return true;
             }
         }
-        logger.log(Level.FINEST, "PR #{0} target branch: {1} isn''t in our whitelist of target branches: {2}", 
+        logger.log(Level.FINEST, "PR #{0} target branch: {1} isn''t in our whitelist of target branches: {2}",
                 new Object[] { id, target, Joiner.on(',').skipNulls().join(branches) }
         );
         return false;
@@ -325,7 +325,6 @@ public class GhprbPullRequest {
             } else if (accepted && helper.isWhitelisted(sender)) {
                 logger.log(Level.FINEST, "Retest accepted and user {0} is whitelisted", sender);
                 shouldRun = true;
-                triggered = true;
             }
         } else if (helper.isTriggerPhrase(body)) { // trigger phrase
             logger.log(Level.FINEST, "Trigger phrase");

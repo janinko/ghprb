@@ -43,10 +43,12 @@ public class GhprbIT extends GhprbITBaseTestCase {
     public void shouldBuildTriggersOnNewPR() throws Exception {
         // GIVEN
         FreeStyleProject project = jenkinsRule.createFreeStyleProject("PRJ");
-        GhprbTrigger trigger = GhprbTestUtil.getTrigger(null);
         given(commitPointer.getSha()).willReturn("sha");
         JSONObject jsonObject = GhprbTestUtil.provideConfiguration();
         GhprbTrigger.getDscp().configure(null, jsonObject);
+
+        GhprbTrigger trigger = GhprbTestUtil.getTrigger(null);
+
         project.addProperty(new GithubProjectProperty("https://github.com/user/dropwizard"));
         given(ghPullRequest.getNumber()).willReturn(1);
 
@@ -75,11 +77,14 @@ public class GhprbIT extends GhprbITBaseTestCase {
     public void shouldBuildTriggersOnUpdatingNewCommitsPR() throws Exception {
         // GIVEN
         FreeStyleProject project = jenkinsRule.createFreeStyleProject("PRJ");
-        GhprbTrigger trigger = GhprbTestUtil.getTrigger(null);
         given(commitPointer.getSha()).willReturn("sha").willReturn("sha").willReturn("newOne").willReturn("newOne");
         given(ghPullRequest.getComments()).willReturn(Lists.<GHIssueComment> newArrayList());
+
         JSONObject jsonObject = GhprbTestUtil.provideConfiguration();
         GhprbTrigger.getDscp().configure(null, jsonObject);
+
+        GhprbTrigger trigger = GhprbTestUtil.getTrigger(null);
+
         project.addProperty(new GithubProjectProperty("https://github.com/user/dropwizard"));
         given(ghPullRequest.getNumber()).willReturn(2).willReturn(2).willReturn(3).willReturn(3);
         Ghprb ghprb = spy(trigger.createGhprb(project));
@@ -101,9 +106,11 @@ public class GhprbIT extends GhprbITBaseTestCase {
     public void shouldBuildTriggersOnUpdatingRetestMessagePR() throws Exception {
         // GIVEN
         FreeStyleProject project = jenkinsRule.createFreeStyleProject("PRJ");
-        GhprbTrigger trigger = GhprbTestUtil.getTrigger(null);
 
         given(commitPointer.getSha()).willReturn("sha");
+        
+        JSONObject jsonObject = GhprbTestUtil.provideConfiguration();
+        GhprbTrigger.getDscp().configure(null, jsonObject);
 
         GHIssueComment comment = mock(GHIssueComment.class);
         given(comment.getBody()).willReturn("retest this please");
@@ -111,9 +118,11 @@ public class GhprbIT extends GhprbITBaseTestCase {
         given(comment.getUser()).willReturn(ghUser);
         given(ghPullRequest.getComments()).willReturn(newArrayList(comment));
         given(ghPullRequest.getNumber()).willReturn(5).willReturn(5);
-        JSONObject jsonObject = GhprbTestUtil.provideConfiguration();
-        GhprbTrigger.getDscp().configure(null, jsonObject);
+
+        GhprbTrigger trigger = GhprbTestUtil.getTrigger(null);
+
         project.addProperty(new GithubProjectProperty("https://github.com/user/dropwizard"));
+        
 
         Ghprb ghprb = spy(trigger.createGhprb(project));
         doReturn(ghprbGitHub).when(ghprb).getGitHub();

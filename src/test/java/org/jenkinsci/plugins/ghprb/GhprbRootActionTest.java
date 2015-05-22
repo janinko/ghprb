@@ -113,8 +113,8 @@ public class GhprbRootActionTest {
         GhprbTestUtil.triggerRunAndWait(10, trigger, project);
 
         assertThat(project.getBuilds().toArray().length).isEqualTo(1);
-        
-        GhprbTrigger.getDscp().setGitHub(ghprbGitHub);
+
+        trigger.getCredentials().setGitHub(ghprbGitHub);
         doReturn(gitHub).when(ghprbGitHub).get();
         
         given(req.getContentType()).willReturn("application/x-www-form-urlencoded");
@@ -154,7 +154,7 @@ public class GhprbRootActionTest {
         
         project.disable();
 
-        GhprbTrigger.getDscp().setGitHub(ghprbGitHub);
+        trigger.getCredentials().setGitHub(ghprbGitHub);
         doReturn(gitHub).when(ghprbGitHub).get();
         
         given(req.getContentType()).willReturn("application/x-www-form-urlencoded");
@@ -164,7 +164,7 @@ public class GhprbRootActionTest {
         GhprbRootAction ra = new GhprbRootAction();
         ra.doIndex(req, null);
         GhprbTestUtil.waitForBuildsToFinish(project);
-        
+
         assertThat(project.getBuilds().toArray().length).isEqualTo(1);
     }
 
