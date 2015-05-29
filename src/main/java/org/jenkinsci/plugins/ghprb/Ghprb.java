@@ -156,11 +156,7 @@ public class Ghprb {
     public boolean isAdmin(GHUser user) {
         return admins.contains(user.getLogin())
                 || (trigger.getAllowMembersOfWhitelistedOrgsAsAdmin()
-<<<<<<< HEAD
-                && isInWhitelistedOrganisation(user));
-=======
                         && isInWhitelistedOrganisation(user));
->>>>>>> master
     }
 
     public boolean isBotUser(GHUser user) {
