@@ -30,12 +30,12 @@ public class Ghprb {
 
 	private boolean checked = false;
 	
-	private final Pattern retestPhrasePattern;
+	private final Pattern customPhrasePattern;
 	private final Pattern whitelistPhrasePattern;
 	private final Pattern oktotestPhrasePattern;
 
 	private Ghprb(){
-		retestPhrasePattern = Pattern.compile(GhprbTrigger.getDscp().getRetestPhrase());
+		customPhrasePattern = Pattern.compile(GhprbTrigger.getDscp().getCustomPhrase());
 		whitelistPhrasePattern = Pattern.compile(GhprbTrigger.getDscp().getWhitelistPhrase());
 		oktotestPhrasePattern = Pattern.compile(GhprbTrigger.getDscp().getOkToTestPhrase());
 	}
@@ -82,8 +82,8 @@ public class Ghprb {
 		return Jenkins.getInstance().getRootUrl() + GhprbRootAction.URL + "/";
 	}
 
-	public boolean isRetestPhrase(String comment){
-		return retestPhrasePattern.matcher(comment).matches();
+	public boolean isCustomPhrase(String comment){
+		return customPhrasePattern.matcher(comment).matches();
 	}
 
 	public boolean isWhitelistPhrase(String comment){

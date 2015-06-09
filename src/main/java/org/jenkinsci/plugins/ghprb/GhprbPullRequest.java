@@ -159,7 +159,7 @@ public class GhprbPullRequest{
 		}
 
 		// test this please
-		if (ml.isRetestPhrase(body)){
+		if (ml.isCustomPhrase(body)){
 			if(ml.isAdmin(sender)){
 				shouldRun = true;
 			}else if(accepted && ml.isWhitelisted(sender) ){

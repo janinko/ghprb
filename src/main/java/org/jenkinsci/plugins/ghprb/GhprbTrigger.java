@@ -109,7 +109,9 @@ public final class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 		values.add(new StringParameterValue("ghprbTargetBranch",String.valueOf(cause.getTargetBranch())));
 		// it's possible the GHUser doesn't have an associated email address
 		values.add(new StringParameterValue("ghprbPullAuthorEmail",cause.getAuthorEmail() != null ? cause.getAuthorEmail() : ""));
-
+        for (ParameterValue value : values) {
+            System.out.println(value.getDescription());
+        }
 		return this.job.scheduleBuild2(0,cause,new ParametersAction(values));
 	}
 
@@ -223,7 +225,7 @@ public final class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 		private String requestForTestingPhrase;
 		private String whitelistPhrase = ".*add\\W+to\\W+whitelist.*";
 		private String okToTestPhrase = ".*ok\\W+to\\W+test.*";
-		private String retestPhrase = ".*test\\W+this\\W+please.*";
+		private String customPhrase   = ".*test\\W+this\\W+please.*";
 		private String cron = "*/5 * * * *";
 		private Boolean useComments = false;
 		private String unstableAs = GHCommitState.FAILURE.name();
@@ -264,7 +266,7 @@ public final class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 			requestForTestingPhrase = formData.getString("requestForTestingPhrase");
 			whitelistPhrase = formData.getString("whitelistPhrase");
 			okToTestPhrase = formData.getString("okToTestPhrase");
-			retestPhrase = formData.getString("retestPhrase");
+			customPhrase   = formData.getString("customPhrase");
 			cron = formData.getString("cron");
 			useComments = formData.getBoolean("useComments");
 			unstableAs = formData.getString("unstableAs");
@@ -328,8 +330,8 @@ public final class GhprbTrigger extends Trigger<AbstractProject<?, ?>> {
 			return okToTestPhrase;
 		}
 
-		public String getRetestPhrase() {
-			return retestPhrase;
+		public String getCustomPhrase() {
+			return customPhrase;
 		}
 
 		public String getCron() {

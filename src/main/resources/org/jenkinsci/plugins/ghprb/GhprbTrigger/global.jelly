@@ -35,7 +35,7 @@
       <f:entry title="${%Accept to test phrase}" field="okToTestPhrase">
         <f:textbox default=".*ok\W+to\W+test.*"/>
       </f:entry>
-      <f:entry title="${%Test phrase}" field="retestPhrase">
+      <f:entry title="${%Custom phrase}" field="customPhrase">
         <f:textbox default=".*test\W+this\W+please.*"/>
       </f:entry>
       <f:entry title="${%Crontab line}" field="cron">
