@@ -67,10 +67,11 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     private List<GhprbBranch> whiteListTargetBranches;
     private transient Ghprb helper;
     private String project;
+    private String secret;
     private GhprbGitHubAuth gitHubApiAuth;
     
     
-    private DescribableList<GhprbExtension, GhprbExtensionDescriptor> extensions;
+    private DescribableList<GhprbExtension, GhprbExtensionDescriptor> extensions = new DescribableList<GhprbExtension, GhprbExtensionDescriptor>(Saveable.NOOP);
     
     public DescribableList<GhprbExtension, GhprbExtensionDescriptor> getExtensions() {
         if (extensions == null) {
@@ -94,16 +95,17 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     }
 
     @DataBoundConstructor
-    public GhprbTrigger(String adminlist, 
-            String whitelist, 
-            String orgslist, 
-            String cron, 
-            String triggerPhrase, 
+
+    public GhprbTrigger(String adminlist,
+            String whitelist,
+            String orgslist,
+            String cron,
+            String triggerPhrase,
             Boolean onlyTriggerPhrase, 
-            Boolean useGitHubHooks, 
+            Boolean useGitHubHooks,
             Boolean permitAll,
-            Boolean autoCloseFailedPullRequests, 
-            Boolean displayBuildErrorsOnDownstreamBuilds, 
+            Boolean autoCloseFailedPullRequests,
+            Boolean displayBuildErrorsOnDownstreamBuilds,
             String commentFilePath, 
             List<GhprbBranch> whiteListTargetBranches,
             Boolean allowMembersOfWhitelistedOrgsAsAdmin, 
@@ -111,6 +113,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             String msgFailure, 
             String commitStatusContext,
             String gitHubAuthId,
+            String secret,
             List<GhprbExtension> extensions
             ) throws ANTLRException {
         super(cron);
@@ -127,6 +130,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         this.whiteListTargetBranches = whiteListTargetBranches;
         this.gitHubApiAuth = getDescriptor().getGitHubAuth(gitHubAuthId);
         this.allowMembersOfWhitelistedOrgsAsAdmin = allowMembersOfWhitelistedOrgsAsAdmin;
+        this.secret = secret;
         setExtensions(extensions);
         configVersion = 1;
     }
@@ -357,6 +361,10 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         return cron;
     }
 
+
+    public String getSecret() {
+        return secret;
+    }
     public String getProject() {
         return project;
     }
@@ -482,7 +490,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         public List<GhprbGitHubAuth> getGithubAuth() {
             if (githubAuth == null || githubAuth.size() == 0) {
                 githubAuth = new ArrayList<GhprbGitHubAuth>(1);
-                githubAuth.add(new GhprbGitHubAuth(null, null, "Blank description", null));
+                githubAuth.add(new GhprbGitHubAuth(null, null, "Anonymous connection", null));
             }
             return githubAuth;
         }
@@ -491,15 +499,10 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             if (githubAuth != null && githubAuth.size() > 0) {
                 return githubAuth;
             }
-            List<GhprbGitHubAuth> defaults = new ArrayList<GhprbGitHubAuth>(1);
-            defaults.add(new GhprbGitHubAuth(null, null, "Blank description", null));
-            return defaults;
+            return getGithubAuth();
         }
         
-        
-
         private String adminlist;
-        
         
         private String requestForTestingPhrase;
 
@@ -655,7 +658,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
 
         public ListBoxModel doFillGitHubAuthIdItems(@QueryParameter("gitHubAuth") String gitHubAuthId) {
             ListBoxModel model = new ListBoxModel();
-            for (GhprbGitHubAuth auth : githubAuth) {
+            for (GhprbGitHubAuth auth : getGithubAuth()) {
                 String description = Util.fixNull(auth.getDescription());
                 int length = description.length();
                 length = length > 50 ? 50 : length;
