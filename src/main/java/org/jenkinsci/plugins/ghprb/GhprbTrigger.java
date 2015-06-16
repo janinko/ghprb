@@ -70,7 +70,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     private GhprbGitHubAuth gitHubApiAuth;
     
     
-    private DescribableList<GhprbExtension, GhprbExtensionDescriptor> extensions;
+    private DescribableList<GhprbExtension, GhprbExtensionDescriptor> extensions = new DescribableList<GhprbExtension, GhprbExtensionDescriptor>(Saveable.NOOP);
     
     public DescribableList<GhprbExtension, GhprbExtensionDescriptor> getExtensions() {
         if (extensions == null) {
@@ -482,7 +482,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         public List<GhprbGitHubAuth> getGithubAuth() {
             if (githubAuth == null || githubAuth.size() == 0) {
                 githubAuth = new ArrayList<GhprbGitHubAuth>(1);
-                githubAuth.add(new GhprbGitHubAuth(null, null, "Blank description", null));
+                githubAuth.add(new GhprbGitHubAuth(null, null, "Anonymous connection", null));
             }
             return githubAuth;
         }
@@ -491,15 +491,10 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             if (githubAuth != null && githubAuth.size() > 0) {
                 return githubAuth;
             }
-            List<GhprbGitHubAuth> defaults = new ArrayList<GhprbGitHubAuth>(1);
-            defaults.add(new GhprbGitHubAuth(null, null, "Blank description", null));
-            return defaults;
+            return getGithubAuth();
         }
         
-        
-
         private String adminlist;
-        
         
         private String requestForTestingPhrase;
 
@@ -557,7 +552,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             autoCloseFailedPullRequests = formData.getBoolean("autoCloseFailedPullRequests");
             displayBuildErrorsOnDownstreamBuilds = formData.getBoolean("displayBuildErrorsOnDownstreamBuilds");
             
-            githubAuth = req.bindJSONToList(GhprbGitHubAuth.class, formData.getJSONObject("githubAuth"));
+            githubAuth = req.bindJSONToList(GhprbGitHubAuth.class, formData.get("githubAuth"));
             
             extensions = new DescribableList<GhprbExtension, GhprbExtensionDescriptor>(Saveable.NOOP);
 
@@ -655,7 +650,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
 
         public ListBoxModel doFillGitHubAuthIdItems(@QueryParameter("gitHubAuth") String gitHubAuthId) {
             ListBoxModel model = new ListBoxModel();
-            for (GhprbGitHubAuth auth : githubAuth) {
+            for (GhprbGitHubAuth auth : getGithubAuth()) {
                 String description = Util.fixNull(auth.getDescription());
                 int length = description.length();
                 length = length > 50 ? 50 : length;
