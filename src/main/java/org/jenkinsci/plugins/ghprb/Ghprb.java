@@ -59,6 +59,7 @@ public class Ghprb {
     private final String triggerPhrase;
     private final GhprbTrigger trigger;
     private final AbstractProject<?, ?> project;
+    private final Pattern triggerPhrasePattern;
     private final Pattern retestPhrasePattern;
     private final Pattern whitelistPhrasePattern;
     private final Pattern oktotestPhrasePattern;
@@ -89,6 +90,8 @@ public class Ghprb {
         this.organisations.remove("");
         this.triggerPhrase = trigger.getTriggerPhrase();
 
+        // Generate trigger phrase pattern
+        triggerPhrasePattern = Pattern.compile(this.triggerPhrase);
         retestPhrasePattern = Pattern.compile(trigger.getDescriptor().getRetestPhrase());
         whitelistPhrasePattern = Pattern.compile(trigger.getDescriptor().getWhitelistPhrase());
         oktotestPhrasePattern = Pattern.compile(trigger.getDescriptor().getOkToTestPhrase());
@@ -152,7 +155,10 @@ public class Ghprb {
     }
 
     public boolean isTriggerPhrase(String comment) {
-        return !triggerPhrase.equals("") && comment != null && comment.contains(triggerPhrase);
+        // Modify trigger phrase to be regex
+        return !triggerPhrase.equals("") && comment != null && (comment.contains(triggerPhrase)
+                || triggerPhrasePattern.matcher(comment).matches()
+                || comment.matches(triggerPhrase));
     }
 
     public boolean ifOnlyTriggerPhrase() {
