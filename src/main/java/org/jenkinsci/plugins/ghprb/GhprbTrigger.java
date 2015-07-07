@@ -193,7 +193,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         }
 
         if ((helper != null && helper.isProjectDisabled()) || (_project != null && _project.isDisabled())) {
-            logger.log(Level.FINE, "Project is disabled, ignoring trigger run call");
+            logger.log(Level.FINE, "Project is disabled, ignoring trigger run call for job {0}", this.project);
             return;
         }
         
@@ -267,6 +267,10 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     }
     
     public AbstractProject<?, ?> getActualProject() {
+        
+        if (_project != null) {
+            return _project;
+        }
 
         @SuppressWarnings("rawtypes")
         List<AbstractProject> projects = Jenkins.getInstance().getAllItems(AbstractProject.class);

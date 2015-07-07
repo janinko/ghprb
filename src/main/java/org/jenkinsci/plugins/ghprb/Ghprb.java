@@ -12,6 +12,7 @@ import com.cloudbees.plugins.credentials.domains.HostnamePortSpecification;
 import com.cloudbees.plugins.credentials.domains.HostnameSpecification;
 import com.cloudbees.plugins.credentials.domains.PathSpecification;
 import com.cloudbees.plugins.credentials.domains.SchemeSpecification;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import com.coravy.hudson.plugins.github.GithubProjectProperty;
 
@@ -20,6 +21,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Cause;
 import hudson.model.Item;
+import hudson.model.ItemGroup;
 import hudson.model.Result;
 import hudson.model.Saveable;
 import hudson.model.TaskListener;
@@ -30,10 +32,10 @@ import hudson.util.Secret;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.collections.functors.InstanceofPredicate;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.ghprb.extensions.GhprbExtension;
 import org.jenkinsci.plugins.ghprb.extensions.GhprbExtensionDescriptor;
 import org.jenkinsci.plugins.ghprb.extensions.GhprbProjectExtension;
-import org.jenkinsci.plugins.gitclient.GitURIRequirementsBuilder;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHUser;
@@ -45,6 +47,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import jenkins.model.Jenkins;
 
 /**
  * @author janinko
@@ -366,10 +370,26 @@ public class Ghprb {
         extensions.add(ext);
     }
 
-    public static StandardCredentials lookupCredentials(Item project, String credentialId, String uri) {
-        return (credentialId == null) ? null : CredentialsMatchers.firstOrNull(
-                    CredentialsProvider.lookupCredentials(StandardCredentials.class, project, ACL.SYSTEM,
-                            GitURIRequirementsBuilder.fromUri(uri).build()),
+    public static StandardCredentials lookupCredentials(Item context, String credentialId, String uri) {
+        String contextName = "(Jenkins.instance)";
+        if (context != null) {
+            contextName = context.getFullName();
+        }
+        logger.log(Level.FINE, "Looking up credentials for {0}, using context {1} for url {2}", new Object[] { credentialId, contextName, uri });
+        
+        List<StandardCredentials> credentials;
+        
+        if (context == null) {
+            credentials = CredentialsProvider.lookupCredentials(StandardCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
+                    URIRequirementBuilder.fromUri(uri).build());
+        } else {
+            credentials = CredentialsProvider.lookupCredentials(StandardCredentials.class, context, ACL.SYSTEM,
+                    URIRequirementBuilder.fromUri(uri).build());
+        }
+        
+        logger.log(Level.FINE, "Found {0} credentials", new Object[]{credentials.size()});
+        
+        return (credentialId == null) ? null : CredentialsMatchers.firstOrNull(credentials,
                     CredentialsMatchers.withId(credentialId));
     }
     
@@ -406,7 +426,11 @@ public class Ghprb {
         }
         
         specifications.add(new SchemeSpecification(serverUri.getScheme()));
-        specifications.add(new PathSpecification(serverUri.getPath(), null, false));
+        String path = serverUri.getPath();
+        if (StringUtils.isEmpty(path)) {
+            path = "/";
+        }
+        specifications.add(new PathSpecification(path, null, false));
         
         Domain domain = new Domain(serverUri.getHost(), "Auto generated credentials domain", specifications);
         CredentialsStore provider = new SystemCredentialsProvider.StoreImpl();
