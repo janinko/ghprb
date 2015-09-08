@@ -18,6 +18,9 @@ f.advanced() {
   f.entry(field: "onlyTriggerPhrase", title: "Only use trigger phrase for build triggering") {
     f.checkbox() 
   }
+  f.entry(field: "alwaysUseHead", title: _("Use head sha1 instead of the auto-merge of github, even if available")) {
+    f.checkbox()
+  }
   f.entry(field: "autoCloseFailedPullRequests", title: _("Close failed pull request automatically?")) {
     f.checkbox(default: descriptor.autoCloseFailedPullRequests) 
   }
