@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.ghprb;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.concurrent.ConcurrentMap;
 
 import org.kohsuke.github.GHPullRequestCommitDetail.Commit;
 import org.kohsuke.github.GHPullRequest;
@@ -21,7 +20,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
-import hudson.model.Cause;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -54,17 +52,6 @@ public class GhprbPullRequestMerge extends Recorder {
         this.disallowOwnCode = disallowOwnCode;
         this.failOnNonMerge = failOnNonMerge;
         this.deleteOnMerge = deleteOnMerge;
-    }
-
-    public GhprbPullRequestMerge(
-            String mergeComment,
-            boolean onlyTriggerPhrase,
-            boolean onlyAdminsMerge,
-            boolean disallowOwnCode,
-            boolean failOnNonMerge,
-            boolean deleteOnMerge) {
-
-        this(mergeComment, onlyAdminsMerge, disallowOwnCode, failOnNonMerge, deleteOnMerge);
     }
 
     public String getMergeComment() {
@@ -121,18 +108,10 @@ public class GhprbPullRequestMerge extends Recorder {
             return true;
         }
 
-        ConcurrentMap<Integer, GhprbPullRequest> pulls = trigger.getDescriptor().getPullRequests(project.getFullName());
-
-        pr = pulls.get(cause.getPullID()).getPullRequest();
-
-        if (pr == null) {
-            logger.println("Pull request is null for ID: " + cause.getPullID());
-            logger.println("" + pulls.toString());
-            return false;
-        }
+        pr = trigger.getRepository().getPullRequest(cause.getPullID());
 
         if (helper == null) {
-            helper = new Ghprb(project, trigger, pulls);
+            helper = new Ghprb(project, trigger);
             helper.init();
         }
 
@@ -243,6 +222,7 @@ public class GhprbPullRequestMerge extends Recorder {
             
             GHUser prUser = pr.getUser();
             if (prUser.getLogin().equals(commentorLogin)) {
+                logger.println(commentorName + " (" + commentorLogin + ")  has commits in PR[" + pr.getId() + "] that is to be merged");
                 return true;
             }
             
@@ -257,6 +237,7 @@ public class GhprbPullRequestMerge extends Recorder {
                 isSame |= commentorName != null && commentorName.equals(committerName);
                 isSame |= commentorEmail != null && commentorEmail.equals(committerEmail);
 
+                logger.println(commentorName + " (" + commentorEmail + ")  has commits in PR[" + pr.getId() + "] that is to be merged");
                 return isSame;
             }
         } catch (IOException e) {
@@ -274,7 +255,7 @@ public class GhprbPullRequestMerge extends Recorder {
         }
 
         @Override
-        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+        public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
             return true;
         }
 
