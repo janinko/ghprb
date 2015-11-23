@@ -40,7 +40,6 @@ import hudson.plugins.git.UserRemoteConfig;
 import net.sf.json.JSONObject;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class GhprbTestUtil {
 
@@ -305,6 +304,7 @@ public class GhprbTestUtil {
         jsonObject.put("unstableAs", "FAILURE");
         jsonObject.put("testMode", "true");
         jsonObject.put("autoCloseFailedPullRequests", "false");
+        jsonObject.put("skipUnmergeablePullRequests", "false");
         jsonObject.put("displayBuildErrorsOnDownstreamBuilds", "false");
         jsonObject.put("msgSuccess", "Success");
         jsonObject.put("msgFailure", "Failure");

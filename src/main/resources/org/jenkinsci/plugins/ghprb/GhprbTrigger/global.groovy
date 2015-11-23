@@ -40,6 +40,9 @@ f.section(title: descriptor.displayName) {
     f.entry(field: "skipBuildPhrase", title: _("Skip build phrase")) {
       f.textbox(default: ".*\\[skip\\W+ci\\].*") 
     }
+    f.entry(field: "skipUnmergeablePullRequests", title: _("Skip build, if pull request could not be merged?")) {
+	  f.checkbox()
+	}
     f.entry(field: "cron", title: _("Crontab line"), help: "/descriptor/hudson.triggers.TimerTrigger/help/spec") {
       f.textbox(default: "H/5 * * * *", checkUrl: "'descriptorByName/hudson.triggers.TimerTrigger/checkSpec?value=' + encodeURIComponent(this.value)") 
     }

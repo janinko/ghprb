@@ -261,6 +261,7 @@ public class GhprbRepositoryTest {
         verify(helper, times(5)).isProjectDisabled();
         verify(helper, times(2)).checkSkipBuild(eq(ghPullRequest));
         verify(helper, times(3)).getTrigger();
+        verify(helper).isSkipUnmergeablePullRequests();
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(2)).getEmail(); // Call to Github API
@@ -351,6 +352,7 @@ public class GhprbRepositoryTest {
         verify(helper).isTriggerPhrase(eq("comment body"));
         verify(helper, times(6)).isProjectDisabled();
         verify(helper, times(2)).checkSkipBuild(eq(ghPullRequest));
+        verify(helper).isSkipUnmergeablePullRequests();
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(2)).getEmail(); // Call to Github API
@@ -441,6 +443,7 @@ public class GhprbRepositoryTest {
         verify(helper, times(6)).isProjectDisabled();
         verify(helper, times(2)).checkSkipBuild(eq(ghPullRequest));
         verify(helper, times(4)).getTrigger();
+        verify(helper, times(2)).isSkipUnmergeablePullRequests();
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(3)).getEmail(); // Call to Github API

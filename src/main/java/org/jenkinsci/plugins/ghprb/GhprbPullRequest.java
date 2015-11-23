@@ -1,6 +1,11 @@
 package org.jenkinsci.plugins.ghprb;
 
-import com.google.common.base.Joiner;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.github.GHCommitPointer;
@@ -11,12 +16,7 @@ import org.kohsuke.github.GHPullRequestCommitDetail;
 import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GitUser;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.google.common.base.Joiner;
 
 /**
  * Maintains state about a Pull Request for a particular Jenkins job. This is what understands the current state of a PR for a particular job.
@@ -230,6 +230,7 @@ public class GhprbPullRequest {
             shouldRun = false;
         }
         if (!isWhiteListedTargetBranch()) {
+        	logger.log(Level.FINEST, "branch is not whitelisted. Not trying to build");
             return;
         }
         if (shouldRun) {
@@ -237,7 +238,11 @@ public class GhprbPullRequest {
 
             if (pr != null) {
                 logger.log(Level.FINEST, "PR is not null, checking if mergable");
-                checkMergeable(pr);
+                boolean mergeable = checkMergeable(pr);                
+        		if (helper.isSkipUnmergeablePullRequests() && !mergeable) {
+        			logger.log(Level.FINEST, "PR is unmergeable and unmergeable PRs should be skipped, not trying to build");
+        			return;
+        		}
                 try {
                     for (GHPullRequestCommitDetail commitDetails : pr.listCommits()) {
                         if (commitDetails.getSha().equals(getHead())) {

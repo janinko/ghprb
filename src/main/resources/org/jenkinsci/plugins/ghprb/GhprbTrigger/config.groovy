@@ -24,6 +24,9 @@ f.advanced() {
   f.entry(field: "skipBuildPhrase", title: _("Skip build phrase")) {
     f.textarea(default: descriptor.skipBuildPhrase) 
   }
+  f.entry(field: "skipUnmergeablePullRequests", title: _("Skip build, if pull request could not be merged?")) {
+	  f.checkbox(default: descriptor.skipUnmergeablePullRequests)
+	}
   f.entry(field: "displayBuildErrorsOnDownstreamBuilds", title: _("Display build errors on downstream builds?")) {
     f.checkbox(default: descriptor.displayBuildErrorsOnDownstreamBuilds) 
   }

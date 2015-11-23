@@ -1,15 +1,17 @@
 package org.jenkinsci.plugins.ghprb;
 
-import antlr.ANTLRException;
-
-import com.coravy.hudson.plugins.github.GithubProjectProperty;
-import com.google.common.annotations.VisibleForTesting;
-
 import hudson.Extension;
 import hudson.Util;
 import hudson.matrix.MatrixProject;
-import hudson.model.*;
+import hudson.model.Item;
+import hudson.model.ParameterValue;
+import hudson.model.Saveable;
 import hudson.model.AbstractProject;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.Run;
+import hudson.model.StringParameterValue;
 import hudson.model.queue.QueueTaskFuture;
 import hudson.plugins.git.util.BuildData;
 import hudson.triggers.TriggerDescriptor;
@@ -17,6 +19,21 @@ import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.ListBoxModel.Option;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import javax.servlet.ServletException;
+
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
@@ -34,17 +51,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
-import javax.servlet.ServletException;
+import antlr.ANTLRException;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
-import jenkins.model.Jenkins;
+import com.coravy.hudson.plugins.github.GithubProjectProperty;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * @author Honza Brázdil <jbrazdil@redhat.com>
@@ -64,6 +74,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     private final Boolean permitAll;
     private String whitelist;
     private Boolean autoCloseFailedPullRequests;
+    private Boolean skipUnmergeablePullRequests;
     private Boolean displayBuildErrorsOnDownstreamBuilds;
     private List<GhprbBranch> whiteListTargetBranches;
     private transient Ghprb helper;
@@ -74,7 +85,8 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     
     private DescribableList<GhprbExtension, GhprbExtensionDescriptor> extensions = new DescribableList<GhprbExtension, GhprbExtensionDescriptor>(Saveable.NOOP);
     
-    public DescribableList<GhprbExtension, GhprbExtensionDescriptor> getExtensions() {
+    @Override
+	public DescribableList<GhprbExtension, GhprbExtensionDescriptor> getExtensions() {
         if (extensions == null) {
             extensions = new DescribableList<GhprbExtension, GhprbExtensionDescriptor>(Saveable.NOOP,Util.fixNull(extensions));
             extensions.add(new GhprbSimpleStatus());
@@ -106,6 +118,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             Boolean useGitHubHooks,
             Boolean permitAll,
             Boolean autoCloseFailedPullRequests,
+            Boolean skipUnmergeablePullRequests,
             Boolean displayBuildErrorsOnDownstreamBuilds,
             String commentFilePath, 
             List<GhprbBranch> whiteListTargetBranches,
@@ -127,6 +140,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         this.useGitHubHooks = useGitHubHooks;
         this.permitAll = permitAll;
         this.autoCloseFailedPullRequests = autoCloseFailedPullRequests;
+        this.skipUnmergeablePullRequests = skipUnmergeablePullRequests;
         this.displayBuildErrorsOnDownstreamBuilds = displayBuildErrorsOnDownstreamBuilds;
         this.whiteListTargetBranches = whiteListTargetBranches;
         this.gitHubAuthId = gitHubAuthId;
@@ -460,7 +474,15 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         }
         return autoCloseFailedPullRequests;
     }
-
+    
+    public Boolean isSkipUnmergeablePullRequests() {
+        if (skipUnmergeablePullRequests == null) {
+            Boolean skipUnmergeable = getDescriptor().getSkipUnmergeablePullRequests();
+            return (skipUnmergeable != null && skipUnmergeable);
+        }
+        return skipUnmergeablePullRequests;
+    }
+    
     public Boolean isDisplayBuildErrorsOnDownstreamBuilds() {
         if (displayBuildErrorsOnDownstreamBuilds == null) {
             Boolean displayErrors = getDescriptor().getDisplayBuildErrorsOnDownstreamBuilds();
@@ -530,6 +552,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         private GHCommitState unstableAs = GHCommitState.FAILURE;
         private List<GhprbBranch> whiteListTargetBranches;
         private Boolean autoCloseFailedPullRequests = false;
+        private Boolean skipUnmergeablePullRequests = false;
         private Boolean displayBuildErrorsOnDownstreamBuilds = false;
         
         private List<GhprbGitHubAuth> githubAuth;
@@ -623,6 +646,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             useDetailedComments = formData.getBoolean("useDetailedComments");
             unstableAs = GHCommitState.valueOf(formData.getString("unstableAs"));
             autoCloseFailedPullRequests = formData.getBoolean("autoCloseFailedPullRequests");
+            skipUnmergeablePullRequests = formData.getBoolean("skipUnmergeablePullRequests");
             displayBuildErrorsOnDownstreamBuilds = formData.getBoolean("displayBuildErrorsOnDownstreamBuilds");
             
             githubAuth = req.bindJSONToList(GhprbGitHubAuth.class, formData.get("githubAuth"));
@@ -703,6 +727,10 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
 
         public Boolean getAutoCloseFailedPullRequests() {
             return autoCloseFailedPullRequests;
+        }
+        
+        public Boolean getSkipUnmergeablePullRequests() {
+            return skipUnmergeablePullRequests;
         }
 
         public Boolean getDisplayBuildErrorsOnDownstreamBuilds() {

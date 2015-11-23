@@ -1,32 +1,33 @@
 package org.jenkinsci.plugins.ghprb;
 
-import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.CredentialsStore;
-import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import com.cloudbees.plugins.credentials.domains.Domain;
-import com.cloudbees.plugins.credentials.domains.DomainSpecification;
-import com.cloudbees.plugins.credentials.domains.HostnamePortSpecification;
-import com.cloudbees.plugins.credentials.domains.HostnameSpecification;
-import com.cloudbees.plugins.credentials.domains.PathSpecification;
-import com.cloudbees.plugins.credentials.domains.SchemeSpecification;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-import com.coravy.hudson.plugins.github.GithubProjectProperty;
-
 import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Cause;
 import hudson.model.Item;
 import hudson.model.Result;
 import hudson.model.Saveable;
 import hudson.model.TaskListener;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Cause;
 import hudson.security.ACL;
 import hudson.util.DescribableList;
 import hudson.util.Secret;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import jenkins.model.Jenkins;
 
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.collections.PredicateUtils;
@@ -40,14 +41,21 @@ import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHUser;
 
-import java.net.URI;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import jenkins.model.Jenkins;
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.CredentialsStore;
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.domains.Domain;
+import com.cloudbees.plugins.credentials.domains.DomainSpecification;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.cloudbees.plugins.credentials.domains.HostnamePortSpecification;
+import com.cloudbees.plugins.credentials.domains.HostnameSpecification;
+import com.cloudbees.plugins.credentials.domains.PathSpecification;
+import com.cloudbees.plugins.credentials.domains.SchemeSpecification;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
+import com.coravy.hudson.plugins.github.GithubProjectProperty;
 
 /**
  * @author janinko
@@ -215,6 +223,10 @@ public class Ghprb {
 
     public boolean isTriggerPhrase(String comment) {
         return triggerPhrase().matcher(comment).matches();
+    }
+
+    public boolean isSkipUnmergeablePullRequests() {
+    	return trigger.isSkipUnmergeablePullRequests();
     }
 
     public boolean ifOnlyTriggerPhrase() {
