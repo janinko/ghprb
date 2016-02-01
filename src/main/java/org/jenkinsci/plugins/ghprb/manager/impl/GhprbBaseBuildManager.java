@@ -43,7 +43,7 @@ public abstract class GhprbBaseBuildManager implements GhprbBuildManager {
 
     /**
      * Calculate the build URL of a build of default type. This will be overriden by specific build types.
-     * 
+     *
      * @return the build URL of a build of default type
      */
     public String calculateBuildUrl(String publishedURL) {
@@ -175,7 +175,7 @@ public abstract class GhprbBaseBuildManager implements GhprbBuildManager {
         AbstractTestResultAction testResultAction = build.getAction(AbstractTestResultAction.class);
 
         if (testResultAction == null) {
-            return "No test results found.";
+            return "";
         }
         return String.format("%d tests run, %d skipped, %d failed.", testResultAction.getTotalCount(), testResultAction.getSkipCount(), testResultAction.getFailCount());
     }
