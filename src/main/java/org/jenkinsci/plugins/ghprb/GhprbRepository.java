@@ -373,7 +373,7 @@ public class GhprbRepository implements Saveable{
             pullRequests.remove(number);
         } else if (!trigger.isActive()) {
             logger.log(Level.FINE, "Not processing Pull request since the build is disabled");
-        } else if ("opened".equals(action) || "reopened".equals(action) || "synchronize".equals(action)) {
+        } else if ("edited".equals(action) || "opened".equals(action) || "reopened".equals(action) || "synchronize".equals(action)) {
             GhprbPullRequest pull = getPullRequest(ghpr, false, number);
             pull.check(ghpr);
         } else {
