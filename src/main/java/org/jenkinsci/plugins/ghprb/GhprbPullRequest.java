@@ -132,11 +132,13 @@ public class GhprbPullRequest {
 
         if (ghprb.isWhitelisted(author)) {
             setAccepted(true);
-        } else {
+        } else if (!ghprb.suppressTestingRequest()) {
             logger.log(Level.INFO,
                        "Author of #{0} {1} on {2} not in whitelist!",
                        new Object[] { id, author.getLogin(), reponame });
             repo.addComment(id, GhprbTrigger.getDscp().getRequestForTestingPhrase());
+        } else {
+            logger.log(Level.INFO, "Not sending RequestForTestingPhrase");
         }
 
         logger.log(Level.INFO,

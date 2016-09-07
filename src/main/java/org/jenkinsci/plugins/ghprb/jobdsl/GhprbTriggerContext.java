@@ -17,6 +17,7 @@ class GhprbTriggerContext implements Context {
     String triggerPhrase;
     String skipBuildPhrase;
     boolean onlyTriggerPhrase;
+    boolean suppressTestingRequest;
     boolean useGitHubHooks;
     boolean permitAll;
     boolean autoCloseFailedPullRequests;
