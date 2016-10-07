@@ -31,13 +31,15 @@ public class GhprbContextExtensionPoint extends ContextExtensionPoint {
                 context.autoCloseFailedPullRequests,
                 context.displayBuildErrorsOnDownstreamBuilds,
                 null,
+                context.skipBuildPhrase,
                 context.whiteListTargetBranches,
+                context.blackListTargetBranches,
                 context.allowMembersOfWhitelistedOrgsAsAdmin,
                 null,
                 null,
                 null,
                 null,
-                null,
+                context.buildDescriptionTemplate,
                 context.extensionContext.extensions
         );
     }
@@ -52,8 +54,8 @@ public class GhprbContextExtensionPoint extends ContextExtensionPoint {
                 context.onlyAdminsMerge,
                 context.disallowOwnCode,
                 context.failOnNonMerge,
-                context.deleteOnMerge
-        );
+                context.deleteOnMerge,
+                context.allowMergeWithoutTriggerPhrase);
     }
 
     @DslExtensionMethod(context = WrapperContext.class)
@@ -62,6 +64,7 @@ public class GhprbContextExtensionPoint extends ContextExtensionPoint {
         executeInContext(closure, context);
 
         return new GhprbUpstreamStatus(
+                context.showMatrixStatus,
                 context.context,
                 context.statusUrl,
                 context.triggeredStatus,
