@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHIssueComment;
+import org.kohsuke.github.GHLabel;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestCommitDetail;
 import org.kohsuke.github.GHUser;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -144,6 +146,12 @@ public class GhprbPullRequest {
      */
     public void check(GHPullRequest ghpr) {
         setPullRequest(ghpr);
+
+        if (checkLabels(ghpr)) {
+            logger.log(Level.INFO, "Found label in ignore list, pull request will be ignored.");
+            return;
+        }
+
         if (helper.isProjectDisabled()) {
             logger.log(Level.FINE, "Project is disabled, ignoring pull request");
             return;
@@ -159,6 +167,22 @@ public class GhprbPullRequest {
         updatePR(pr, pr.getUser());
 
         tryBuild();
+    }
+
+    private boolean checkLabels(final GHPullRequest ghpr) {
+        Set<String> labelsToSkip = helper.getLabels();
+        try {
+            for (GHLabel label : ghpr.getLabels()) {
+                if (labelsToSkip.contains(label.getName())) {
+                    logger.info("Found label in ignore list: " + label.getName());
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to read labels", e);
+        }
+
+        return false;
     }
 
     private void checkSkipBuild() {
