@@ -174,7 +174,6 @@ public class GhprbPullRequest {
         try {
             for (GHLabel label : ghpr.getLabels()) {
                 if (labelsToSkip.contains(label.getName())) {
-                    logger.info("Found label in ignore list: " + label.getName());
                     return true;
                 }
             }
