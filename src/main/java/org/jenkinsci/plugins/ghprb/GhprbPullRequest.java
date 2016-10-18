@@ -147,11 +147,6 @@ public class GhprbPullRequest {
     public void check(GHPullRequest ghpr) {
         setPullRequest(ghpr);
 
-        if (checkLabels(ghpr)) {
-            logger.log(Level.INFO, "Found label in ignore list, pull request will be ignored.");
-            return;
-        }
-
         if (helper.isProjectDisabled()) {
             logger.log(Level.FINE, "Project is disabled, ignoring pull request");
             return;
@@ -169,19 +164,20 @@ public class GhprbPullRequest {
         tryBuild();
     }
 
-    private boolean checkLabels(final GHPullRequest ghpr) {
+    private void checkLabels() {
         Set<String> labelsToSkip = helper.getLabels();
         try {
-            for (GHLabel label : ghpr.getLabels()) {
+            for (GHLabel label : pr.getLabels()) {
                 if (labelsToSkip.contains(label.getName())) {
-                    return true;
+                    logger.log(Level.INFO,
+                            "Found label {0} in ignore list, pull request will be ignored.",
+                            label.getName());
+                    shouldRun = false;
                 }
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to read labels", e);
         }
-
-        return false;
     }
 
     private void checkSkipBuild() {
@@ -302,6 +298,7 @@ public class GhprbPullRequest {
     private void tryBuild() {
         synchronized (this) {
             checkSkipBuild();
+            checkLabels();
             if (helper.isProjectDisabled()) {
                 logger.log(Level.FINEST, "Project is disabled, not trying to build");
                 shouldRun = false;
