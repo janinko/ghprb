@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.ghprb;
 
 import org.apache.commons.codec.binary.Hex;
+import org.fest.util.Collections;
 import org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus;
 import org.joda.time.DateTime;
 import org.junit.Assert;
@@ -40,7 +41,9 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -211,7 +214,6 @@ public class GhprbRepositoryTest {
         verify(ghPullRequest, times(1)).getCreatedAt();
         verify(ghPullRequest, times(1)).getUser();
         verify(ghPullRequest, times(1)).getBase();
-        verify(ghPullRequest, times(1)).getLabels();
         verifyNoMoreInteractions(ghPullRequest);
 
         verify(helper).ifOnlyTriggerPhrase();
@@ -253,6 +255,7 @@ public class GhprbRepositoryTest {
         given(helper.ifOnlyTriggerPhrase()).willReturn(false);
         given(helper.isWhitelisted(ghUser)).willReturn(true);
         given(helper.getTrigger()).willReturn(trigger);
+        given(helper.getLabels()).willReturn(Collections.set("bug", "help wanted"));
 
         // WHEN
         ghprbRepository.check();
@@ -335,6 +338,7 @@ public class GhprbRepositoryTest {
         given(helper.ifOnlyTriggerPhrase()).willReturn(false);
         given(helper.isWhitelisted(ghUser)).willReturn(true);
         given(helper.getTrigger()).willReturn(trigger);
+        given(helper.getLabels()).willReturn(Collections.set("bug", "help wanted"));
 
         // WHEN
         ghprbRepository.check(); // PR was created
@@ -428,6 +432,7 @@ public class GhprbRepositoryTest {
         given(helper.isRetestPhrase(eq("test this please"))).willReturn(true);
         given(helper.isWhitelisted(ghUser)).willReturn(true);
         given(helper.getTrigger()).willReturn(trigger);
+        given(helper.getLabels()).willReturn(Collections.set("bug", "help wanted"));
 
         // WHEN
         ghprbRepository.check(); // PR was created

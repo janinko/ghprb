@@ -16,6 +16,7 @@ import org.kohsuke.github.GitUser;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -166,17 +167,20 @@ public class GhprbPullRequest {
 
     private void checkLabels() {
         Set<String> labelsToSkip = helper.getLabels();
-        try {
-            for (GHLabel label : pr.getLabels()) {
-                if (labelsToSkip.contains(label.getName())) {
-                    logger.log(Level.INFO,
-                            "Found label {0} in ignore list, pull request will be ignored.",
-                            label.getName());
-                    shouldRun = false;
+        if (labelsToSkip != null && !labelsToSkip.isEmpty()) {
+            try {
+                for (GHLabel label : pr.getLabels()) {
+                    if (labelsToSkip.contains(label.getName())) {
+                        logger.log(Level.INFO,
+                                "Found label {0} in ignore list, pull request will be ignored.",
+                                label.getName());
+                        shouldRun = false;
+                    }
                 }
+
+            } catch(IOException e) {
+                logger.log(Level.SEVERE, "Failed to read labels", e);
             }
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to read labels", e);
         }
     }
 
