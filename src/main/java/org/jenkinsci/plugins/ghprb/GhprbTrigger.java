@@ -83,6 +83,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     private List<GhprbBranch> whiteListTargetBranches;
     private String gitHubAuthId;
     private String triggerPhrase;
+    private String labelslist;
     
 
     private transient Ghprb helper;
@@ -136,6 +137,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             String commitStatusContext,
             String gitHubAuthId,
             String buildDescTemplate,
+            String labelslist,
             List<GhprbExtension> extensions
             ) throws ANTLRException {
         super(cron);
@@ -153,6 +155,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         this.gitHubAuthId = gitHubAuthId;
         this.allowMembersOfWhitelistedOrgsAsAdmin = allowMembersOfWhitelistedOrgsAsAdmin;
         this.buildDescTemplate = buildDescTemplate;
+        this.labelslist = labelslist;
         setExtensions(extensions);
         configVersion = latestVersion;
     }
@@ -491,6 +494,10 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         return triggerPhrase;
     }
 
+    public String getLabelslist() {
+        return labelslist;
+    }
+
     public Boolean getOnlyTriggerPhrase() {
         return onlyTriggerPhrase != null && onlyTriggerPhrase;
     }
@@ -642,7 +649,8 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         private Boolean displayBuildErrorsOnDownstreamBuilds = false;
         
         private List<GhprbGitHubAuth> githubAuth;
-        
+        private String labelslist;
+
         public GhprbGitHubAuth getGitHubAuth(String gitHubAuthId) {
             
             if (gitHubAuthId == null) {
@@ -751,7 +759,8 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             unstableAs = GHCommitState.valueOf(formData.getString("unstableAs"));
             autoCloseFailedPullRequests = formData.getBoolean("autoCloseFailedPullRequests");
             displayBuildErrorsOnDownstreamBuilds = formData.getBoolean("displayBuildErrorsOnDownstreamBuilds");
-            
+            labelslist = formData.getString("labelslist");
+
             githubAuth = req.bindJSONToList(GhprbGitHubAuth.class, formData.get("githubAuth"));
             
             extensions = new DescribableList<GhprbExtension, GhprbExtensionDescriptor>(Saveable.NOOP);
@@ -829,6 +838,9 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             return useDetailedComments;
         }
 
+        public String getLabelslist() {
+            return labelslist;
+        }
 
         public Boolean getAutoCloseFailedPullRequests() {
             return autoCloseFailedPullRequests;
@@ -1019,7 +1031,6 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
                 getExtensions().add(ext);
             }
         }
-        
     }
 
 }

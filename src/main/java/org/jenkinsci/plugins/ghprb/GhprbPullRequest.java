@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHIssueComment;
+import org.kohsuke.github.GHLabel;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestCommitDetail;
 import org.kohsuke.github.GHUser;
@@ -15,8 +16,10 @@ import org.kohsuke.github.GitUser;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -144,6 +147,7 @@ public class GhprbPullRequest {
      */
     public void check(GHPullRequest ghpr) {
         setPullRequest(ghpr);
+
         if (helper.isProjectDisabled()) {
             logger.log(Level.FINE, "Project is disabled, ignoring pull request");
             return;
@@ -159,6 +163,25 @@ public class GhprbPullRequest {
         updatePR(pr, pr.getUser());
 
         tryBuild();
+    }
+
+    private void checkLabels() {
+        Set<String> labelsToSkip = helper.getLabels();
+        if (labelsToSkip != null && !labelsToSkip.isEmpty()) {
+            try {
+                for (GHLabel label : pr.getLabels()) {
+                    if (labelsToSkip.contains(label.getName())) {
+                        logger.log(Level.INFO,
+                                "Found label {0} in ignore list, pull request will be ignored.",
+                                label.getName());
+                        shouldRun = false;
+                    }
+                }
+
+            } catch(IOException e) {
+                logger.log(Level.SEVERE, "Failed to read labels", e);
+            }
+        }
     }
 
     private void checkSkipBuild() {
@@ -279,6 +302,7 @@ public class GhprbPullRequest {
     private void tryBuild() {
         synchronized (this) {
             checkSkipBuild();
+            checkLabels();
             if (helper.isProjectDisabled()) {
                 logger.log(Level.FINEST, "Project is disabled, not trying to build");
                 shouldRun = false;
