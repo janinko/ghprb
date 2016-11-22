@@ -75,6 +75,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     private final String cron;
     private final String buildDescTemplate;
     private final Boolean onlyTriggerPhrase;
+    private final Boolean alwaysUseHead;
     private final Boolean useGitHubHooks;
     private final Boolean permitAll;
     private String whitelist;
@@ -125,6 +126,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             String triggerPhrase,
             Boolean onlyTriggerPhrase, 
             Boolean useGitHubHooks,
+            Boolean alwaysUseHead,
             Boolean permitAll,
             Boolean autoCloseFailedPullRequests,
             Boolean displayBuildErrorsOnDownstreamBuilds,
@@ -145,6 +147,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         this.cron = cron;
         this.triggerPhrase = triggerPhrase;
         this.onlyTriggerPhrase = onlyTriggerPhrase;
+        this.alwaysUseHead = alwaysUseHead;
         this.useGitHubHooks = useGitHubHooks;
         this.permitAll = permitAll;
         this.autoCloseFailedPullRequests = autoCloseFailedPullRequests;
@@ -298,8 +301,8 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         }
         
         ArrayList<ParameterValue> values = getDefaultParameters();
-        final String commitSha = cause.isMerged() ? "origin/pr/" + cause.getPullID() + "/merge" : cause.getCommit();
-        values.add(new StringParameterValue("sha1", commitSha));
+        boolean useMerge = !this.getAlwaysUseHead() && cause.isMerged();
+        values.add(new StringParameterValue("sha1", useMerge ? "origin/pr/" + cause.getPullID() + "/merge" : cause.getCommit()));
         values.add(new StringParameterValue("ghprbActualCommit", cause.getCommit()));
         String triggerAuthor = "";
         String triggerAuthorEmail = "";
@@ -493,6 +496,10 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
 
     public Boolean getOnlyTriggerPhrase() {
         return onlyTriggerPhrase != null && onlyTriggerPhrase;
+    }
+
+    public Boolean getAlwaysUseHead() {
+        return alwaysUseHead != null && alwaysUseHead;
     }
 
     public Boolean getUseGitHubHooks() {

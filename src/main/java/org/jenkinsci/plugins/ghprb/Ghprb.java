@@ -189,6 +189,10 @@ public class Ghprb {
         return trigger.getOnlyTriggerPhrase();
     }
 
+    public boolean getAlwaysUseHead() {
+        return trigger.getAlwaysUseHead();
+    }
+
     public boolean isWhitelisted(GHUser user) {
         return trigger.getPermitAll()
                 || whitelisted().contains(user.getLogin().toLowerCase())
