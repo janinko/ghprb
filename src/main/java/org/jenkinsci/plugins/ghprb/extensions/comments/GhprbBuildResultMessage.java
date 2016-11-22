@@ -18,7 +18,7 @@ public class GhprbBuildResultMessage extends AbstractDescribableImpl<GhprbBuildR
 
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
-    
+
     private final String message;
     private final GHCommitState result;
 
@@ -55,7 +55,7 @@ public class GhprbBuildResultMessage extends AbstractDescribableImpl<GhprbBuildR
                 if (msg.length() > 0) {
                     msg.append("\n");
                 }
-                msg.append(message);
+                msg.append(Ghprb.replaceMacros(build, listener, message));
                 msg.append("\n");
             }
         }
@@ -66,7 +66,7 @@ public class GhprbBuildResultMessage extends AbstractDescribableImpl<GhprbBuildR
     public DescriptorImpl getDescriptor() {
         return DESCRIPTOR;
     }
-    
+
     public static class DescriptorImpl extends Descriptor<GhprbBuildResultMessage> {
 
         public boolean isApplicable(Class<?> type) {
