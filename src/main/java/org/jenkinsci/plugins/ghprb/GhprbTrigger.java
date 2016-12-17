@@ -328,6 +328,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         setCommitAuthor(cause, values);
         values.add(new StringParameterValue("ghprbAuthorRepoGitUrl", getString(cause.getAuthorRepoGitUrl(), "")));
 
+        values.add(new StringParameterValue("ghprbTriggerComment", cause.getCommentBody()));
         values.add(new StringParameterValue("ghprbTriggerAuthor", triggerAuthor));
         values.add(new StringParameterValue("ghprbTriggerAuthorEmail", triggerAuthorEmail));
         values.add(new StringParameterValue("ghprbTriggerAuthorLogin", triggerAuthorLogin));
