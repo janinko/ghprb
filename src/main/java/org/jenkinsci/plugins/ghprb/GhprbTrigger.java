@@ -629,6 +629,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
          * value in the global.jelly file as this value is dynamic and will not be
          * retained once configure() is called.
          */
+        private String requestForTestingPhrase = "Can one of the admins verify this patch?";
         private String whitelistPhrase = ".*add\\W+to\\W+whitelist.*";
         private String okToTestPhrase = ".*ok\\W+to\\W+test.*";
         private String retestPhrase = ".*test\\W+this\\W+please.*";
@@ -678,8 +679,6 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         
         private String adminlist;
         
-        private String requestForTestingPhrase;
-
         // map of jobs (by their fullName) and their map of pull requests
         private transient Map<String, Map<Integer, GhprbPullRequest>> jobs;
         
