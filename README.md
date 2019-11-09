@@ -130,7 +130,7 @@ job('upstreamJob') {
     }
 
     triggers {
-        pullRequest {
+        githubPullRequest {
             admin('user_1')
             admins(['user_2', 'user_3'])
             userWhitelist('you@you.com')
@@ -145,6 +145,7 @@ job('upstreamJob') {
             autoCloseFailedPullRequests()
             displayBuildErrorsOnDownstreamBuilds()
             whiteListTargetBranches(['master','test', 'test2'])
+            blackListListTargetBranches(['master','test', 'test2'])
             allowMembersOfWhitelistedOrgsAsAdmin()
             extensions {
                 commitStatus {

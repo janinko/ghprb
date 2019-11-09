@@ -12,14 +12,18 @@ class GhprbTriggerContext implements Context {
     List<String> userWhitelist = new ArrayList<String>();
     List<String> orgWhitelist = new ArrayList<String>();
     List<GhprbBranch> whiteListTargetBranches = new ArrayList<GhprbBranch>();
+    List<GhprbBranch> blackListTargetBranches = new ArrayList<GhprbBranch>();
     String cron = "H/5 * * * *";
     String triggerPhrase;
+    String skipBuildPhrase;
     boolean onlyTriggerPhrase;
+    boolean suppressTestingRequest;
     boolean useGitHubHooks;
     boolean permitAll;
     boolean autoCloseFailedPullRequests;
     boolean allowMembersOfWhitelistedOrgsAsAdmin;
     boolean displayBuildErrorsOnDownstreamBuilds;
+    String buildDescriptionTemplate;
     GhprbExtensionContext extensionContext = new GhprbExtensionContext();
 
     /**
@@ -70,7 +74,6 @@ class GhprbTriggerContext implements Context {
         }
     }
 
-
     /**
      * Add branch names whose they are considered whitelisted for this specific job
      */
@@ -79,11 +82,27 @@ class GhprbTriggerContext implements Context {
     }
 
     /**
+     * Add branch names whose they are considered blacklisted for this specific job
+     */
+    public void blackListTargetBranch(String branch) {
+        blackListTargetBranches.add(new GhprbBranch(branch));
+    }
+
+    /**
      * Add branch names whose they are considered whitelisted for this specific job
      */
     public void whiteListTargetBranches(Iterable<String> branches) {
         for (String branch : branches) {
             whiteListTargetBranches.add(new GhprbBranch(branch));
+        }
+    }
+
+    /**
+     * Add branch names whose they are considered blacklisted for this specific job
+     */
+    public void blackListTargetBranches(Iterable<String> branches) {
+        for (String branch : branches) {
+            blackListTargetBranches.add(new GhprbBranch(branch));
         }
     }
 
@@ -99,6 +118,13 @@ class GhprbTriggerContext implements Context {
      */
     public void triggerPhrase(String triggerPhrase) {
         this.triggerPhrase = triggerPhrase;
+    }
+
+    /**
+     * When filled, adding this phrase to the pull request title or body will skip the build.
+     */
+    public void skipBuildPhrase(String skipBuildPhrase) {
+        this.skipBuildPhrase = skipBuildPhrase;
     }
 
     /**
@@ -183,6 +209,13 @@ class GhprbTriggerContext implements Context {
      */
     public void displayBuildErrorsOnDownstreamBuilds() {
         displayBuildErrorsOnDownstreamBuilds(true);
+    }
+
+    /**
+     * When filled, changes the default build description template
+     */
+    public void buildDescriptionTemplate(String template) {
+       this.buildDescriptionTemplate = template;
     }
 
     /**
